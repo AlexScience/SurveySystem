@@ -15,7 +15,7 @@ public class SurveyService : ISurveyService
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<Survey> CreateSurveyAsync(SurveyCreateDto surveyDto)
+    public async Task<Survey?> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
         if (surveyDto == null)
             throw new ArgumentNullException(nameof(surveyDto));
@@ -26,12 +26,22 @@ public class SurveyService : ISurveyService
 
         foreach (var questionDto in surveyDto.Questions)
         {
+            if (string.IsNullOrWhiteSpace(questionDto.Text))
+            {
+                throw new ArgumentException("Question text cannot be null or empty", nameof(questionDto.Text));
+            }
+
             var question = new Question(Guid.NewGuid(), questionDto.Text, questionDto.Type, survey.Id);
 
             if (questionDto.Options != null)
             {
                 foreach (var optionDto in questionDto.Options)
                 {
+                    if (string.IsNullOrWhiteSpace(optionDto.Text))
+                    {
+                        throw new ArgumentException("Option text cannot be null or empty", nameof(optionDto.Text));
+                    }
+
                     var option = new Option(Guid.NewGuid(), optionDto.Text, question.Id);
                     question.Options.Add(option);
                 }
@@ -39,14 +49,13 @@ public class SurveyService : ISurveyService
 
             survey.Questions.Add(question);
         }
-
         await _context.Surveys.AddAsync(survey);
         await _context.SaveChangesAsync();
 
         return survey;
     }
 
-    public async Task<Survey> GetSurveyByIdAsync(Guid id)
+    public async Task<Survey?> GetSurveyByIdAsync(Guid id)
     {
         // Поиск Survey по ID с включением связанных данных
         return await _context.Surveys

@@ -1,4 +1,6 @@
-﻿namespace SurveySystem.API.Controllers;
+﻿using SurveySystem.API.DTO;
+
+namespace SurveySystem.API.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using SurveySystem.API.Services.InterfaceServices;
@@ -25,8 +27,12 @@ public class OptionsController(IOptionService optionService) : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> CreateOption(Option option)
+    public async Task<IActionResult> CreateOption(OptionCreateDto optionDto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var option = new Option(Guid.NewGuid(), optionDto.Text,optionDto.QuestionId);
         var createdOption = await optionService.CreateOptionAsync(option);
         return CreatedAtAction(nameof(GetOptionById), new { id = createdOption.Id }, createdOption);
     }

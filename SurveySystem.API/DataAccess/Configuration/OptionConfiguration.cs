@@ -9,15 +9,16 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
     public void Configure(EntityTypeBuilder<Option> builder)
     {
         builder.ToTable("options");
-        
+
         builder.HasKey(o => o.Id);
 
         builder.Property(o => o.Text)
             .IsRequired()
-            .HasMaxLength(250);
+            .HasMaxLength(250); // Убедитесь, что это значение согласовано с DTO
 
         builder.HasOne(o => o.Question)
             .WithMany(q => q.Options)
-            .HasForeignKey(o => o.QuestionId);
+            .HasForeignKey(o => o.QuestionId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

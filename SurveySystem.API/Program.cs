@@ -21,7 +21,7 @@ builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -55,19 +55,20 @@ app.Run();
 /*
  
  {
-       "Title": "Survey about Technology",
-       "Description": "Survey on the latest trends in technology.",
-       "Questions": [
-           {
-               "Text": "What is your favorite programming language?",
-               "Type": "MultipleChoice",
-               "Options": [
-                   {"Text": "C#"},
-                   {"Text": "JavaScript"},
-                   {"Text": "Python"}
-               ]
-           }
-       ]
-   }
+  "title": "Sample Survey",
+  "description": "Description here",
+  "questions": [
+    {
+      "text": "What is your favorite color?",
+      "type": 1,
+      "options": [
+        { "text": "Red" },
+        { "text": "Blue" },
+        { "text": "Green" }
+      ]
+    }
+  ]
+}
+
    
 */

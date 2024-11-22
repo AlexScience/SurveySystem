@@ -13,7 +13,6 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
         builder.HasKey(q => q.Id);
 
         builder.Property(q => q.Text)
-            .IsRequired()
             .HasMaxLength(500);
 
         builder.HasOne(q => q.Survey)

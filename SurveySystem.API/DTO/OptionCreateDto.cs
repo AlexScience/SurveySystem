@@ -6,7 +6,9 @@ namespace SurveySystem.API.DTO;
 public class OptionCreateDto
 {
     [Required]
-    [MaxLength(100)]
-    [SwaggerSchema("The text of the option")]
+    [MaxLength(250)]
     public string Text { get; set; } = string.Empty;
+
+    [Required]
+    public Guid QuestionId { get; set; }
 }
