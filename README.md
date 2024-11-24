@@ -88,6 +88,7 @@ dotnet run
 Получает список всех пользователей.
 
 ### 2. Опросы
+![{6A72B461-E14B-46E5-8519-E953CBA61028}](https://github.com/user-attachments/assets/7a2f71da-ae67-4501-8bb7-9ebdeebbed6b)
 
 #### Создание опроса
 `POST /api/surveys`  
@@ -98,6 +99,7 @@ dotnet run
 Получает информацию об опросе по его ID, включая статистику по вариантам ответов.
 
 ### 3. Ответы
+![{CD626A27-D86E-48D2-B66E-955676037AB6}](https://github.com/user-attachments/assets/323121ef-66e9-405f-aada-c4dd76445797)
 
 #### Отправить ответ на вопрос
 `POST /api/answers`  
