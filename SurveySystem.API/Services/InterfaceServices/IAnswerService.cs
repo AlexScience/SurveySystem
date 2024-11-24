@@ -7,4 +7,5 @@ public interface IAnswerService
 {
     public Task<Answer> GetAnswerByIdAsync(Guid id);
     public Task<Answer> CreateAnswerAsync(AnswerCreateDto answerDto);
+    public Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid questionId);
 }

@@ -3,5 +3,5 @@
 public enum QuestionType
 {
     MultipleChoice, // Вопрос с несколькими вариантами ответа
-    OpenEnded      // Открытый вопрос
+    OpenEnded // Открытый вопрос
 }

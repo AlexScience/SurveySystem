@@ -9,7 +9,7 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
     public void Configure(EntityTypeBuilder<Question> builder)
     {
         builder.ToTable("questions");
-        
+
         builder.HasKey(q => q.Id);
 
         builder.Property(q => q.Text)

@@ -10,11 +10,15 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
 {
     public async Task<Answer> CreateAnswerAsync(AnswerCreateDto answerDto)
     {
-        var answer = new Answer(Guid.NewGuid(), answerDto.QuestionId, answerDto.AnswerText, answerDto.OptionId, answerDto.UserId);
+        var answer = new Answer(Guid.NewGuid(), answerDto.QuestionId, answerDto.AnswerText, answerDto.OptionId,
+            answerDto.UserId);
 
-        var question = await context.Questions.Include(q => q.Options).FirstOrDefaultAsync(q => q.Id == answerDto.QuestionId);
+        var question = await context.Questions.Include(q => q.Options)
+            .FirstOrDefaultAsync(q => q.Id == answerDto.QuestionId);
         if (question == null)
+        {
             throw new ArgumentException("Invalid question ID");
+        }
 
         if (answerDto.OptionId.HasValue)
         {
@@ -27,6 +31,16 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             {
                 throw new ArgumentException("Invalid option ID");
             }
+        }
+
+        var userExists = await context.Users.AnyAsync(u => u.Id == answerDto.UserId);
+        if (userExists)
+        {
+            answer.User = await context.Users.FirstOrDefaultAsync(a => a.Id == answerDto.UserId);
+        }
+        else
+        {
+            throw new ArgumentException("Invalid User ID");
         }
 
         context.Answers.Add(answer);
@@ -42,5 +56,28 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             .Include(a => a.Option)
             .Include(a => a.User)
             .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid questionId)
+    {
+        var options = await context.Options
+            .Where(o => o.QuestionId == questionId)
+            .ToListAsync();
+
+        var result = new List<OptionWithAnswerCountDto>();
+        foreach (var option in options)
+        {
+            var answerCount = await context.Answers
+                .CountAsync(a => a.OptionId == option.Id);
+
+            result.Add(new OptionWithAnswerCountDto
+            {
+                OptionId = option.Id,
+                Text = option.Text,
+                AnswerCount = answerCount
+            });
+        }
+
+        return result;
     }
 }

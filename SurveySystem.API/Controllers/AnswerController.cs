@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace SurveySystem.API.Controllers;
 
 [ApiController]
-[Route("api/answers")]
+[Route("api/[controller]")]
 public class AnswerController(IAnswerService answerService) : ControllerBase
 {
     [HttpPost]
@@ -15,9 +15,6 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
         Summary = "Submit an answer to a question",
         Description = "Allows a user to submit an answer to a specific question."
     )]
-    [SwaggerResponse(201, "Answer submitted successfully", typeof(AnswerCreateDto))]
-    [SwaggerResponse(400, "Invalid answer data")]
-    [SwaggerResponse(500, "Internal server error")]
     public async Task<IActionResult> SubmitAnswer([FromBody] AnswerCreateDto answerDto)
     {
         if (answerDto == null)
@@ -32,9 +29,6 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
         Summary = "Get an answer by ID",
         Description = "Retrieves the details of an answer using its unique identifier."
     )]
-    [SwaggerResponse(200, "Answer retrieved successfully", typeof(AnswerCreateDto))]
-    [SwaggerResponse(404, "Answer not found")]
-    [SwaggerResponse(500, "Internal server error")]
     public async Task<IActionResult> GetAnswerById(Guid id)
     {
         var answer = await answerService.GetAnswerByIdAsync(id);
@@ -42,6 +36,17 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
             return NotFound();
 
         return Ok(answer);
+    }
+    
+    [HttpGet("options/{questionId}")]
+    [SwaggerOperation(
+        Summary = "Get options with answer count",
+        Description = "Retrieves the details of an answer using its unique identifier."
+    )]
+    public async Task<IActionResult> GetOptionsWithAnswerCount(Guid questionId)
+    {
+        var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(questionId);
+        return Ok(optionsWithAnswerCount);
     }
 
 }

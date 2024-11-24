@@ -5,7 +5,7 @@ namespace SurveySystem.API.Services.InterfaceServices;
 
 public interface ISurveyService
 {
-    public Task<Survey?> CreateSurveyAsync(SurveyCreateDto surveyDto);
+    public Task<SurveyWithDetailsDto> CreateSurveyAsync(SurveyCreateDto surveyDto);
     public Task<Survey?> GetSurveyByIdAsync(Guid id);
 
 }
