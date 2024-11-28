@@ -9,16 +9,13 @@ using SurveySystem.API.Models;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService) : ControllerBase
+public class SurveysController(ISurveyService surveyService, IAnswerService answerService) : ControllerBase
 {
     [HttpPost]
     [SwaggerOperation(
         Summary = "Create a new survey",
         Description = "Creates a new survey with the specified title, description, and questions."
     )]
-    [SwaggerResponse(201, "Survey created successfully", typeof(SurveyCreateDto))]
-    [SwaggerResponse(400, "Invalid survey data")]
-    [SwaggerResponse(500, "Internal server error")]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
         var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
@@ -30,15 +27,34 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
         Summary = "Get a survey by ID",
         Description = "Retrieves the details of a survey by its unique identifier."
     )]
-    [SwaggerResponse(200, "Survey retrieved successfully", typeof(SurveyCreateDto))]
-    [SwaggerResponse(404, "Survey not found")]
-    [SwaggerResponse(500, "Internal server error")]
     public async Task<IActionResult> GetSurveyById(Guid id)
     {
+        // Получаем информацию об опросе
         var survey = await surveyService.GetSurveyByIdAsync(id);
         if (survey == null)
             return NotFound();
 
-        return Ok(survey);
+        // Для каждого вопроса в опросе, получаем варианты и их количество ответов
+        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
+        {
+            Id = survey.Id,
+            Title = survey.Title,
+            Description = survey.Description,
+            CreatedAt = survey.CreatedAt,
+            Questions = new List<QuestionWithOptionsDto>()
+        };
+
+        foreach (var question in survey.Questions)
+        {
+            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(question.Id);
+            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
+            {
+                QuestionId = question.Id,
+                QuestionText = question.Text,
+                Options = optionsWithAnswerCount
+            });
+        }
+
+        return Ok(surveyWithAnswerCount);
     }
 }

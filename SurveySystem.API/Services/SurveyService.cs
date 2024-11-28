@@ -6,16 +6,9 @@ using SurveySystem.API.Services.InterfaceServices;
 
 namespace SurveySystem.API.Services;
 
-public class SurveyService : ISurveyService
+public class SurveyService(SurveyDbContext context) : ISurveyService
 {
-    private readonly SurveyDbContext _context;
-
-    public SurveyService(SurveyDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-    }
-
-    public async Task<Survey?> CreateSurveyAsync(SurveyCreateDto surveyDto)
+    public async Task<SurveyWithDetailsDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
         if (surveyDto == null)
             throw new ArgumentNullException(nameof(surveyDto));
@@ -49,16 +42,36 @@ public class SurveyService : ISurveyService
 
             survey.Questions.Add(question);
         }
-        await _context.Surveys.AddAsync(survey);
-        await _context.SaveChangesAsync();
 
-        return survey;
+        await context.Surveys.AddAsync(survey);
+        await context.SaveChangesAsync();
+
+        var surveyWithDetails = new SurveyWithDetailsDto
+        {
+            Id = survey.Id,
+            Title = survey.Title,
+            Description = survey.Description,
+            CreatedAt = survey.CreatedAt,
+            Questions = context.Questions
+                .Where(q => q.SurveyId == survey.Id)
+                .Select(q => new QuestionWithOptionsDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.Text,
+                    Options = q.Options.Select(o => new OptionWithAnswerCountDto()
+                    {
+                        OptionId = o.Id,
+                        Text = o.Text,
+                    }).ToList()
+                }).ToList()
+        };
+
+        return surveyWithDetails;
     }
 
     public async Task<Survey?> GetSurveyByIdAsync(Guid id)
     {
-        // Поиск Survey по ID с включением связанных данных
-        return await _context.Surveys
+        return await context.Surveys
             .Include(s => s.Questions)
             .ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(s => s.Id == id);

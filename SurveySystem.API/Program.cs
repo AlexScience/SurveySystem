@@ -1,9 +1,11 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SurveySystem.API.Services;
 using SurveySystem.API.Services.InterfaceServices;
 using SurveySystem.API.DataAccess;
+using SurveySystem.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,17 +18,25 @@ builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
-// Добавление контроллеров и Swagger
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    });
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 5; // Минимальная длина пароля
+        options.Password.RequireNonAlphanumeric = false; // Не требовать спецсимволы
+        options.Password.RequireUppercase = false; // Не требовать буквы в верхнем регистре
+        options.Password.RequireLowercase = false; // Не требовать буквы в нижнем регистре
+    } )
+    .AddEntityFrameworkStores<SurveyDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve; });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.EnableAnnotations(); // Включение аннотаций
+    options.EnableAnnotations();
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Survey API",
@@ -40,10 +50,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Survey API v1");
-    });
+    app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Survey API v1"); });
 }
 
 app.UseHttpsRedirection();
@@ -51,24 +58,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-/*
- 
- {
-  "title": "Sample Survey",
-  "description": "Description here",
-  "questions": [
-    {
-      "text": "What is your favorite color?",
-      "type": 1,
-      "options": [
-        { "text": "Red" },
-        { "text": "Blue" },
-        { "text": "Green" }
-      ]
-    }
-  ]
-}
-
-   
-*/

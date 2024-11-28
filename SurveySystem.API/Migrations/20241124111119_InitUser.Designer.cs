@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SurveySystem.API.DataAccess;
@@ -11,9 +12,11 @@ using SurveySystem.API.DataAccess;
 namespace SurveySystem.API.Migrations
 {
     [DbContext(typeof(SurveyDbContext))]
-    partial class SurveyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241124111119_InitUser")]
+    partial class InitUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,8 +75,7 @@ namespace SurveySystem.API.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(150)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -107,7 +109,7 @@ namespace SurveySystem.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("ApplicationUser");
                 });
 
             modelBuilder.Entity("SurveySystem.API.Models.Option", b =>

@@ -14,7 +14,7 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
 
         builder.Property(o => o.Text)
             .IsRequired()
-            .HasMaxLength(250); // Убедитесь, что это значение согласовано с DTO
+            .HasMaxLength(250);
 
         builder.HasOne(o => o.Question)
             .WithMany(q => q.Options)
