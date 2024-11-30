@@ -21,4 +21,9 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="7.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SurveySystem.DTO\SurveySystem.DTO.csproj" />
+      <ProjectReference Include="..\SurveySystem.Models\SurveySystem.Models.csproj" />
+    </ItemGroup>
+
 </Project>

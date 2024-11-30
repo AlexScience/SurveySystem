@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Swashbuckle.AspNetCore.Annotations;
 
-namespace SurveySystem.API.DTO;
+namespace SurveySystem.DTO.DTO;
 
 public class OptionCreateDto
 {

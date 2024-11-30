@@ -1,4 +1,4 @@
-﻿using SurveySystem.API.Models;
+﻿using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services.InterfaceServices;
 

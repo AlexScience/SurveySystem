@@ -1,4 +1,4 @@
-﻿namespace SurveySystem.API.Models;
+﻿namespace SurveySystem.Models.Models;
 
 public record Survey(Guid Id, string? Title, string? Description, DateTime CreatedAt)
 {

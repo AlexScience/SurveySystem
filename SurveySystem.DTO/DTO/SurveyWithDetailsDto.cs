@@ -1,6 +1,6 @@
-﻿namespace SurveySystem.API.DTO;
+﻿namespace SurveySystem.DTO.DTO;
 
-public class SurveyWithAnswerCountDto
+public class SurveyWithDetailsDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; }

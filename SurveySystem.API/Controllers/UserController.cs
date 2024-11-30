@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SurveySystem.API.DTO;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.API.Controllers;

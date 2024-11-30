@@ -2,6 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveySystem.API", "SurveySystem.API\SurveySystem.API.csproj", "{2D0B4740-8BA8-4521-ADFD-A86E63019013}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveySystem.Models", "SurveySystem.Models\SurveySystem.Models.csproj", "{F0B2EA3F-F305-49A9-8F65-75571BB81F94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveySystem.DTO", "SurveySystem.DTO\SurveySystem.DTO.csproj", "{ACFDC439-5052-45E3-9CDF-7C9214433B70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveySystem.Tests", "SurveySystem.Tests\SurveySystem.Tests.csproj", "{C89D99B1-DE91-450E-B577-40F5D572EA2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +18,17 @@ Global
 		{2D0B4740-8BA8-4521-ADFD-A86E63019013}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D0B4740-8BA8-4521-ADFD-A86E63019013}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D0B4740-8BA8-4521-ADFD-A86E63019013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0B2EA3F-F305-49A9-8F65-75571BB81F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0B2EA3F-F305-49A9-8F65-75571BB81F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0B2EA3F-F305-49A9-8F65-75571BB81F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0B2EA3F-F305-49A9-8F65-75571BB81F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACFDC439-5052-45E3-9CDF-7C9214433B70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACFDC439-5052-45E3-9CDF-7C9214433B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACFDC439-5052-45E3-9CDF-7C9214433B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACFDC439-5052-45E3-9CDF-7C9214433B70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C89D99B1-DE91-450E-B577-40F5D572EA2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C89D99B1-DE91-450E-B577-40F5D572EA2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C89D99B1-DE91-450E-B577-40F5D572EA2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C89D99B1-DE91-450E-B577-40F5D572EA2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using SurveySystem.API.Models;
+using SurveySystem.Models.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace SurveySystem.API.DTO;
+namespace SurveySystem.DTO.DTO;
 
 public class QuestionCreateDto
 {

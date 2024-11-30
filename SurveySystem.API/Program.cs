@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Models;
 using SurveySystem.API.Services;
 using SurveySystem.API.Services.InterfaceServices;
 using SurveySystem.API.DataAccess;
-using SurveySystem.API.Models;
+using SurveySystem.Models.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

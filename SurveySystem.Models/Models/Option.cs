@@ -1,4 +1,4 @@
-﻿namespace SurveySystem.API.Models;
+﻿namespace SurveySystem.Models.Models;
 
 public record Option(Guid Id, string Text, Guid QuestionId)
 {

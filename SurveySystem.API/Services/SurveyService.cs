@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SurveySystem.API.DataAccess;
-using SurveySystem.API.DTO;
-using SurveySystem.API.Models;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
@@ -12,9 +12,11 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
     {
         if (surveyDto == null)
             throw new ArgumentNullException(nameof(surveyDto));
+
         if (surveyDto.Questions == null || !surveyDto.Questions.Any())
             throw new ArgumentException("Survey must contain at least one question", nameof(surveyDto.Questions));
 
+        // Создание нового опроса
         var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow);
 
         foreach (var questionDto in surveyDto.Questions)
@@ -24,9 +26,12 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
                 throw new ArgumentException("Question text cannot be null or empty", nameof(questionDto.Text));
             }
 
-            var question = new Question(Guid.NewGuid(), questionDto.Text, questionDto.Type, survey.Id);
+            // Создание вопроса
+            var questionType = questionDto.Type; // Тип вопроса напрямую передаем
+            var question = new Question(Guid.NewGuid(), questionDto.Text, questionType, survey.Id);
 
-            if (questionDto.Options != null)
+            // Если тип вопроса — MultipleChoice, то добавляем опции
+            if (questionDto.Options != null && questionType == QuestionType.MultipleChoice)
             {
                 foreach (var optionDto in questionDto.Options)
                 {
@@ -46,6 +51,7 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
         await context.Surveys.AddAsync(survey);
         await context.SaveChangesAsync();
 
+        // Формируем DTO для ответа
         var surveyWithDetails = new SurveyWithDetailsDto
         {
             Id = survey.Id,
@@ -54,11 +60,12 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
             CreatedAt = survey.CreatedAt,
             Questions = context.Questions
                 .Where(q => q.SurveyId == survey.Id)
+                .AsEnumerable()
                 .Select(q => new QuestionWithOptionsDto
                 {
                     QuestionId = q.Id,
                     QuestionText = q.Text,
-                    Options = q.Options.Select(o => new OptionWithAnswerCountDto()
+                    Options = q.Options.Select(o => new OptionWithAnswerCountDto
                     {
                         OptionId = o.Id,
                         Text = o.Text,
@@ -74,6 +81,8 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
         return await context.Surveys
             .Include(s => s.Questions)
             .ThenInclude(q => q.Options)
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.Answers)
             .FirstOrDefaultAsync(s => s.Id == id);
     }
 }

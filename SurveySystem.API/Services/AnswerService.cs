@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SurveySystem.API.DataAccess;
-using SurveySystem.API.DTO;
-using SurveySystem.API.Models;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 

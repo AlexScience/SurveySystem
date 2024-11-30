@@ -1,4 +1,4 @@
-﻿namespace SurveySystem.API.DTO;
+﻿namespace SurveySystem.DTO.DTO;
 
 public class CreateUserRequest
 {

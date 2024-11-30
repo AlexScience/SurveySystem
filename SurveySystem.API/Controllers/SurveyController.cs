@@ -1,16 +1,16 @@
-﻿using SurveySystem.API.DTO;
+﻿using SurveySystem.DTO.DTO;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.API.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using SurveySystem.API.Services.InterfaceServices;
-using SurveySystem.API.Models;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService, IAnswerService answerService) : ControllerBase
+public class SurveysController (ISurveyService surveyService, IAnswerService answerService) : ControllerBase
 {
+    // Создание нового опроса
     [HttpPost]
     [SwaggerOperation(
         Summary = "Create a new survey",
@@ -18,10 +18,27 @@ public class SurveysController(ISurveyService surveyService, IAnswerService answ
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
-        var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
-        return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+        if (surveyDto == null)
+        {
+            return BadRequest("Survey data is required.");
+        }
+
+        try
+        {
+            var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
+            return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
+    // Получение опроса по ID
     [HttpGet("{id}")]
     [SwaggerOperation(
         Summary = "Get a survey by ID",
@@ -29,12 +46,17 @@ public class SurveysController(ISurveyService surveyService, IAnswerService answ
     )]
     public async Task<IActionResult> GetSurveyById(Guid id)
     {
-        // Получаем информацию об опросе
+        if (id == Guid.Empty)
+        {
+            return BadRequest("Survey ID cannot be empty.");
+        }
+
         var survey = await surveyService.GetSurveyByIdAsync(id);
         if (survey == null)
-            return NotFound();
+        {
+            return NotFound($"Survey with ID {id} not found.");
+        }
 
-        // Для каждого вопроса в опросе, получаем варианты и их количество ответов
         var surveyWithAnswerCount = new SurveyWithAnswerCountDto
         {
             Id = survey.Id,

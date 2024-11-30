@@ -1,5 +1,5 @@
-﻿using SurveySystem.API.DTO;
-using SurveySystem.API.Models;
+﻿using SurveySystem.DTO.DTO;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services.InterfaceServices;
 

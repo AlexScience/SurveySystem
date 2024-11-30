@@ -1,4 +1,4 @@
-﻿namespace SurveySystem.API.Models;
+﻿namespace SurveySystem.Models.Models;
 
 public record Answer(Guid Id, Guid QuestionId, string AnswerText, Guid? OptionId, string UserId)
 {

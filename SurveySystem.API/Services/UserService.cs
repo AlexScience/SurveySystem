@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SurveySystem.API.Models;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
