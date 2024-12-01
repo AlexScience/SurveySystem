@@ -20,7 +20,7 @@ builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
         options.Password.RequireDigit = false;
         options.Password.RequiredLength = 5; // Минимальная длина пароля

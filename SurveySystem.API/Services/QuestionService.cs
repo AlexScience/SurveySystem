@@ -1,36 +1,17 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SurveySystem.API.DataAccess;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
 using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
 public class QuestionService(SurveyDbContext context) : IQuestionService
 {
-    public async Task<IEnumerable<Question>> GetQuestionsBySurveyIdAsync(Guid surveyId)
+    public async Task<Question> UpdateQuestionAsync(Guid id, QuestionUpdateDto questionUpdateDto)
     {
-        return await context.Questions
-            .Where(q => q.SurveyId == surveyId)
-            .Include(q => q.Options)
-            .ToListAsync();
-    }
-
-    public async Task<Question?> GetQuestionByIdAsync(Guid id)
-    {
-        return await context.Questions
-            .Include(q => q.Options)
-            .FirstOrDefaultAsync(q => q.Id == id);
-    }
-
-    public async Task<Question> CreateQuestionAsync(Question question)
-    {
-        context.Questions.Add(question);
-        await context.SaveChangesAsync();
-        return question;
-    }
-
-    public async Task<Question> UpdateQuestionAsync(Question question)
-    {
+        var question = await context.Questions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == id);
+        question = question with { Text = questionUpdateDto.Text };
         context.Questions.Update(question);
         await context.SaveChangesAsync();
         return question;

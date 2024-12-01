@@ -47,7 +47,7 @@ public class AnswerServiceTests
             }
         };
 
-        var user = new ApplicationUser { Id = userId, UserName = "user123" };
+        var user = new User { Id = userId, UserName = "user123" };
 
         // Сохраняем данные в InMemory базу
         _dbContext.Questions.Add(question);

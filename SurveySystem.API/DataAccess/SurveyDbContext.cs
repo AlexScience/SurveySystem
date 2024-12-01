@@ -11,7 +11,7 @@ public class SurveyDbContext(DbContextOptions<SurveyDbContext> options) : DbCont
     public DbSet<Option> Options { get; set; }
     public DbSet<Answer> Answers { get; set; }
 
-    public DbSet<ApplicationUser> Users { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

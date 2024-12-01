@@ -4,5 +4,5 @@ public record Answer(Guid Id, Guid QuestionId, string AnswerText, Guid? OptionId
 {
     public Question Question { get; set; } = default!;
     public Option Option { get; set; } = default!;
-    public ApplicationUser User { get; set; } = default!;
+    public User User { get; set; } = default!;
 }

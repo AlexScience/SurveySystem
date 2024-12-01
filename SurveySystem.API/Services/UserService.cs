@@ -4,11 +4,11 @@ using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
-public class UserService(UserManager<ApplicationUser> userManager) : IUserService
+public class UserService(UserManager<User> userManager) : IUserService
 {
-    public async Task<ApplicationUser> CreateUserAsync(string username, string email, string password, string fullName)
+    public async Task<User> CreateUserAsync(string username, string email, string password, string fullName)
     {
-        var user = new ApplicationUser
+        var user = new User
         {
             UserName = username,
             Email = email,
@@ -25,12 +25,12 @@ public class UserService(UserManager<ApplicationUser> userManager) : IUserServic
         return user;
     }
 
-    public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
+    public async Task<User?> GetUserByIdAsync(string userId)
     {
         return await userManager.FindByIdAsync(userId);
     }
 
-    public async Task<IEnumerable<ApplicationUser>> GetAllUsersAsync()
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
         return await Task.FromResult(userManager.Users.ToList());
     }
