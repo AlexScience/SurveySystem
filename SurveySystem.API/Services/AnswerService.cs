@@ -58,25 +58,37 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
-    public async Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid questionId)
+    public async Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid surveyId)
     {
-        var options = await context.Options
-            .Where(o => o.QuestionId == questionId)
+        var survey = await context.Surveys
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.Options)
+            .FirstOrDefaultAsync(s => s.Id == surveyId);
+
+        if (survey == null)
+            throw new ArgumentException($"Survey with ID {surveyId} not found.");
+
+        var questionIds = survey.Questions.Select(q => q.Id).ToList();
+
+        var optionsWithCounts = await context.Answers
+            .Where(a => questionIds.Contains(a.QuestionId))
+            .GroupBy(a => a.OptionId)
+            .Select(g => new
+            {
+                OptionId = g.Key,
+                AnswerCount = g.Count()
+            })
             .ToListAsync();
 
-        var result = new List<OptionWithAnswerCountDto>();
-        foreach (var option in options)
-        {
-            var answerCount = await context.Answers
-                .CountAsync(a => a.OptionId == option.Id);
-
-            result.Add(new OptionWithAnswerCountDto
+        var result = survey.Questions
+            .SelectMany(q => q.Options)
+            .Select(option => new OptionWithAnswerCountDto
             {
                 OptionId = option.Id,
                 Text = option.Text,
-                AnswerCount = answerCount
-            });
-        }
+                AnswerCount = optionsWithCounts.FirstOrDefault(o => o.OptionId == option.Id)?.AnswerCount ?? 0
+            })
+            .ToList();
 
         return result;
     }

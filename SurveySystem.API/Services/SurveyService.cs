@@ -6,16 +6,10 @@ using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
-public class SurveyService(SurveyDbContext context) : ISurveyService
+public class SurveyService(SurveyDbContext context,IAnswerService answerService) : ISurveyService
 {
-    public async Task<SurveyWithDetailsDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
+    public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
-        if (surveyDto == null)
-            throw new ArgumentNullException(nameof(surveyDto));
-
-        if (surveyDto.Questions == null || !surveyDto.Questions.Any())
-            throw new ArgumentException("Survey must contain at least one question", nameof(surveyDto.Questions));
-
         // Создание нового опроса
         var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow);
 
@@ -52,37 +46,50 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
         await context.SaveChangesAsync();
 
         // Формируем DTO для ответа
-        var surveyWithDetails = new SurveyWithDetailsDto
+        var surveyWithDetails = GetSurveyByIdAsync(survey.Id);
+
+        return await surveyWithDetails;
+    }
+
+    public async Task<SurveyWithAnswerCountDto> GetSurveyByIdAsync(Guid id)
+    {
+        var survey = await context.Surveys.AsNoTracking()
+            .Include(survey => survey.Questions).ThenInclude(q => q.Answers)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
         {
             Id = survey.Id,
             Title = survey.Title,
             Description = survey.Description,
             CreatedAt = survey.CreatedAt,
-            Questions = context.Questions
-                .Where(q => q.SurveyId == survey.Id)
-                .AsEnumerable()
-                .Select(q => new QuestionWithOptionsDto
-                {
-                    QuestionId = q.Id,
-                    QuestionText = q.Text,
-                    Options = q.Options.Select(o => new OptionWithAnswerCountDto
-                    {
-                        OptionId = o.Id,
-                        Text = o.Text,
-                    }).ToList()
-                }).ToList()
+            Questions = new List<QuestionWithOptionsDto>()
         };
 
-        return surveyWithDetails;
+        foreach (var question in survey.Questions)
+        {
+            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(id);
+            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
+            {
+                QuestionId = question.Id,
+                QuestionText = question.Text,
+                Options = optionsWithAnswerCount
+            });
+        }
+
+        return  surveyWithAnswerCount;
     }
 
-    public async Task<Survey?> GetSurveyByIdAsync(Guid id)
+    public async Task<SurveyWithAnswerCountDto> UpdateSurveyAsync(Guid id, SurveyUpdateDto surveyUpdateDto)
     {
-        return await context.Surveys
-            .Include(s => s.Questions)
-            .ThenInclude(q => q.Options)
-            .Include(s => s.Questions)
-            .ThenInclude(q => q.Answers)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        var survey = await context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+        survey = survey with { Title = surveyUpdateDto.Title, Description = surveyUpdateDto.Description };
+
+        context.Surveys.Update(survey);
+        await context.SaveChangesAsync();
+        
+        var surveyDto = GetSurveyByIdAsync(id);
+
+        return await surveyDto;
     }
 }

@@ -8,7 +8,7 @@ using SurveySystem.API.Services.InterfaceServices;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController (ISurveyService surveyService, IAnswerService answerService) : ControllerBase
+public class SurveysController(ISurveyService surveyService, IAnswerService answerService) : ControllerBase
 {
     // Создание нового опроса
     [HttpPost]
@@ -39,44 +39,32 @@ public class SurveysController (ISurveyService surveyService, IAnswerService ans
     }
 
     // Получение опроса по ID
-    [HttpGet("{id}")]
+    [HttpGet("{surveyId}")]
     [SwaggerOperation(
         Summary = "Get a survey by ID",
         Description = "Retrieves the details of a survey by its unique identifier."
     )]
-    public async Task<IActionResult> GetSurveyById(Guid id)
+    public async Task<IActionResult> GetSurveyById(Guid surveyId)
     {
-        if (id == Guid.Empty)
+        if (surveyId == Guid.Empty)
         {
             return BadRequest("Survey ID cannot be empty.");
         }
 
-        var survey = await surveyService.GetSurveyByIdAsync(id);
-        if (survey == null)
-        {
-            return NotFound($"Survey with ID {id} not found.");
-        }
+        var survey = await surveyService.GetSurveyByIdAsync(surveyId);
 
-        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
-        {
-            Id = survey.Id,
-            Title = survey.Title,
-            Description = survey.Description,
-            CreatedAt = survey.CreatedAt,
-            Questions = new List<QuestionWithOptionsDto>()
-        };
+        return Ok(survey);
+    }
 
-        foreach (var question in survey.Questions)
-        {
-            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(question.Id);
-            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
-            {
-                QuestionId = question.Id,
-                QuestionText = question.Text,
-                Options = optionsWithAnswerCount
-            });
-        }
+    [HttpPut("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Update a survey by ID",
+        Description = "Editing the survey title and description"
+    )]
+    public async Task<IActionResult> UpdateSurvey(Guid id, [FromBody] SurveyUpdateDto surveyUpdateDto)
+    {
+        var resultSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
 
-        return Ok(surveyWithAnswerCount);
+        return Ok(resultSurvey);
     }
 }

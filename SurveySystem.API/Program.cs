@@ -14,11 +14,12 @@ builder.Services.AddDbContext<SurveyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgres")));
 
 // Регистрация сервисов
+builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
