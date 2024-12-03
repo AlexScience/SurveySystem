@@ -4,13 +4,12 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace SurveySystem.API.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using SurveySystem.API.Services.InterfaceServices;
+using Services.InterfaceServices;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService, IAnswerService answerService) : ControllerBase
+public class SurveysController(ISurveyService surveyService) : ControllerBase
 {
-    // Создание нового опроса
     [HttpPost]
     [SwaggerOperation(
         Summary = "Create a new survey",
@@ -18,11 +17,6 @@ public class SurveysController(ISurveyService surveyService, IAnswerService answ
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
-        if (surveyDto == null)
-        {
-            return BadRequest("Survey data is required.");
-        }
-
         try
         {
             var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
@@ -38,7 +32,6 @@ public class SurveysController(ISurveyService surveyService, IAnswerService answ
         }
     }
 
-    // Получение опроса по ID
     [HttpGet("{surveyId}")]
     [SwaggerOperation(
         Summary = "Get a survey by ID",

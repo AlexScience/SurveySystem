@@ -17,6 +17,31 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
         return question;
     }
 
+    public async Task<Question> UpdateOptionAsync(Guid id, OptionUpdateDto optionCreateDto)
+    {
+        var question = await context.Questions.Include(q => q.Options).AsNoTracking() 
+            .FirstOrDefaultAsync(q => q.Id == id);
+
+        if (question == null)
+        {
+            throw new ArgumentException($"Question with ID {id} not found.");
+        }
+
+        // Обновляем коллекцию Options, создавая новые объекты с изменённым Text
+        question = question with
+        {
+            Options = question.Options.Select(option => option with
+            {
+                Text = optionCreateDto.Text
+            }).ToList()
+        };
+
+        context.Questions.Update(question);
+        await context.SaveChangesAsync();
+
+        return question;
+    }
+
     public async Task<bool> DeleteQuestionAsync(Guid id)
     {
         var question = await context.Questions.FindAsync(id);
