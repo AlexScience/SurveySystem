@@ -22,7 +22,7 @@ namespace SurveySystem.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SurveySystem.API.Models.Answer", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Answer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -39,6 +39,9 @@ namespace SurveySystem.API.Migrations
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("QuestionId1")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -49,12 +52,14 @@ namespace SurveySystem.API.Migrations
 
                     b.HasIndex("QuestionId");
 
+                    b.HasIndex("QuestionId1");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("answers", (string)null);
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.ApplicationUser", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -110,7 +115,7 @@ namespace SurveySystem.API.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Option", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Option", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -131,7 +136,7 @@ namespace SurveySystem.API.Migrations
                     b.ToTable("options", (string)null);
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Question", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Question", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -154,7 +159,7 @@ namespace SurveySystem.API.Migrations
                     b.ToTable("questions", (string)null);
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Survey", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Survey", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -176,19 +181,23 @@ namespace SurveySystem.API.Migrations
                     b.ToTable("surveys", (string)null);
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Answer", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Answer", b =>
                 {
-                    b.HasOne("SurveySystem.API.Models.Option", "Option")
+                    b.HasOne("SurveySystem.Models.Models.Option", "Option")
                         .WithMany()
                         .HasForeignKey("OptionId");
 
-                    b.HasOne("SurveySystem.API.Models.Question", "Question")
+                    b.HasOne("SurveySystem.Models.Models.Question", "Question")
                         .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SurveySystem.API.Models.ApplicationUser", "User")
+                    b.HasOne("SurveySystem.Models.Models.Question", null)
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionId1");
+
+                    b.HasOne("SurveySystem.Models.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -201,9 +210,9 @@ namespace SurveySystem.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Option", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Option", b =>
                 {
-                    b.HasOne("SurveySystem.API.Models.Question", "Question")
+                    b.HasOne("SurveySystem.Models.Models.Question", "Question")
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -212,9 +221,9 @@ namespace SurveySystem.API.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Question", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Question", b =>
                 {
-                    b.HasOne("SurveySystem.API.Models.Survey", "Survey")
+                    b.HasOne("SurveySystem.Models.Models.Survey", "Survey")
                         .WithMany("Questions")
                         .HasForeignKey("SurveyId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -223,12 +232,14 @@ namespace SurveySystem.API.Migrations
                     b.Navigation("Survey");
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Question", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Question", b =>
                 {
+                    b.Navigation("Answers");
+
                     b.Navigation("Options");
                 });
 
-            modelBuilder.Entity("SurveySystem.API.Models.Survey", b =>
+            modelBuilder.Entity("SurveySystem.Models.Models.Survey", b =>
                 {
                     b.Navigation("Questions");
                 });

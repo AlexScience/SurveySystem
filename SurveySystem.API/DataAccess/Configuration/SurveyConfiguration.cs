@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SurveySystem.API.Models;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.DataAccess.Configuration;
 

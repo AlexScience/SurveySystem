@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace SurveySystem.API.Models;
+namespace SurveySystem.Models.Models;
 
-public class ApplicationUser : IdentityUser
+public class User : IdentityUser
 {
     public string? FullName { get; set; }
 }

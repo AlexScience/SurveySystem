@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Models;
 using SurveySystem.API.Services;
 using SurveySystem.API.Services.InterfaceServices;
 using SurveySystem.API.DataAccess;
-using SurveySystem.API.Models;
+using SurveySystem.Models.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,13 +14,14 @@ builder.Services.AddDbContext<SurveyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgres")));
 
 // Регистрация сервисов
+builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+
+builder.Services.AddIdentity<User, IdentityRole>(options =>
     {
         options.Password.RequireDigit = false;
         options.Password.RequiredLength = 5; // Минимальная длина пароля

@@ -16,8 +16,8 @@ namespace SurveySystem.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -26,11 +26,11 @@ namespace SurveySystem.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "users",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    FullName = table.Column<string>(type: "text", nullable: true),
+                    FullName = table.Column<string>(type: "varchar(150)", maxLength: 200, nullable: true),
                     UserName = table.Column<string>(type: "text", nullable: true),
                     NormalizedUserName = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: true),
@@ -48,7 +48,7 @@ namespace SurveySystem.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_users", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -56,7 +56,7 @@ namespace SurveySystem.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     SurveyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -104,12 +104,6 @@ namespace SurveySystem.API.Migrations
                 {
                     table.PrimaryKey("PK_answers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_answers_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_answers_options_OptionId",
                         column: x => x.OptionId,
                         principalTable: "options",
@@ -118,6 +112,12 @@ namespace SurveySystem.API.Migrations
                         name: "FK_answers_questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_answers_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -155,10 +155,10 @@ namespace SurveySystem.API.Migrations
                 name: "answers");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "options");
 
             migrationBuilder.DropTable(
-                name: "options");
+                name: "users");
 
             migrationBuilder.DropTable(
                 name: "questions");

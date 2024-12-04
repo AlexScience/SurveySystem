@@ -1,15 +1,14 @@
-﻿using SurveySystem.API.DTO;
+﻿using SurveySystem.DTO.DTO;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.API.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using SurveySystem.API.Services.InterfaceServices;
-using SurveySystem.API.Models;
+using Services.InterfaceServices;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService, IAnswerService answerService) : ControllerBase
+public class SurveysController(ISurveyService surveyService) : ControllerBase
 {
     [HttpPost]
     [SwaggerOperation(
@@ -18,43 +17,47 @@ public class SurveysController(ISurveyService surveyService, IAnswerService answ
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
-        var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
-        return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+        try
+        {
+            var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
+            return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{surveyId}")]
     [SwaggerOperation(
         Summary = "Get a survey by ID",
         Description = "Retrieves the details of a survey by its unique identifier."
     )]
-    public async Task<IActionResult> GetSurveyById(Guid id)
+    public async Task<IActionResult> GetSurveyById(Guid surveyId)
     {
-        // Получаем информацию об опросе
-        var survey = await surveyService.GetSurveyByIdAsync(id);
-        if (survey == null)
-            return NotFound();
-
-        // Для каждого вопроса в опросе, получаем варианты и их количество ответов
-        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
+        if (surveyId == Guid.Empty)
         {
-            Id = survey.Id,
-            Title = survey.Title,
-            Description = survey.Description,
-            CreatedAt = survey.CreatedAt,
-            Questions = new List<QuestionWithOptionsDto>()
-        };
-
-        foreach (var question in survey.Questions)
-        {
-            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(question.Id);
-            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
-            {
-                QuestionId = question.Id,
-                QuestionText = question.Text,
-                Options = optionsWithAnswerCount
-            });
+            return BadRequest("Survey ID cannot be empty.");
         }
 
-        return Ok(surveyWithAnswerCount);
+        var survey = await surveyService.GetSurveyByIdAsync(surveyId);
+
+        return Ok(survey);
+    }
+
+    [HttpPut("{id:guid}")]
+    [SwaggerOperation(
+        Summary = "Update a survey by ID",
+        Description = "Editing the survey title and description"
+    )]
+    public async Task<IActionResult> UpdateSurvey(Guid id, [FromBody] SurveyUpdateDto surveyUpdateDto)
+    {
+        var resultSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
+
+        return Ok(resultSurvey);
     }
 }

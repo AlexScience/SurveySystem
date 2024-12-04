@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SurveySystem.API.DTO;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.API.Controllers;
@@ -13,12 +13,12 @@ public class UserController(IUserService userService) : ControllerBase
     [SwaggerOperation(
         Summary = "Create a new user"
     )]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequestDto requestDto)
     {
         try
         {
-            var user = await userService.CreateUserAsync(request.Username, request.Email, request.Password,
-                request.FullName);
+            var user = await userService.CreateUserAsync(requestDto.Username, requestDto.Email, requestDto.Password,
+                requestDto.FullName);
             return Ok(new { user.Id, user.UserName, user.FullName });
         }
         catch (Exception ex)
@@ -27,7 +27,7 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpGet("getById{id}")]
+    [HttpGet("getById/{id}")]
     [SwaggerOperation(
         Summary = "Get a user by ID",
         Description = "Retrieves the details of a user by its unique identifier."

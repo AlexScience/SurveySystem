@@ -12,8 +12,8 @@ using SurveySystem.API.DataAccess;
 namespace SurveySystem.API.Migrations
 {
     [DbContext(typeof(SurveyDbContext))]
-    [Migration("20241124120146_UpdateUser")]
-    partial class UpdateUser
+    [Migration("20241129133950_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

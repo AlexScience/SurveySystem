@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SurveySystem.API.DataAccess;
-using SurveySystem.API.Models;
 using SurveySystem.API.Services.InterfaceServices;
+using SurveySystem.DTO.DTO;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
@@ -26,11 +27,9 @@ public class OptionService(SurveyDbContext context) : IOptionService
         return option;
     }
 
-    public async Task<Option> UpdateOptionAsync(Option option)
+    public Task<Option> UpdateOptionAsync(Option option)
     {
-        context.Options.Update(option);
-        await context.SaveChangesAsync();
-        return option;
+        throw new NotImplementedException();
     }
 
     public async Task<bool> DeleteOptionAsync(Guid id)
