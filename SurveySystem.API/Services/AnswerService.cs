@@ -71,7 +71,7 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
         var questionIds = survey.Questions.Select(q => q.Id).ToList();
 
         var optionsWithCounts = await context.Answers
-            .Where(a => questionIds.Contains(a.QuestionId))
+            .Where(a => questionIds.Contains(a.IdQuestion))
             .GroupBy(a => a.OptionId)
             .Select(g => new
             {

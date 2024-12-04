@@ -20,15 +20,15 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
         return CreatedAtAction(nameof(SubmitAnswer), new { id = answer.Id }, answer);
     }
 
-    [HttpGet("options/{questionId}")]
+    [HttpGet("options/{surveyId}")]
     [SwaggerOperation(
         Summary = "Get options with answer count",
         Description =
             "Retrieves the options for a specific question along with the count of answers submitted for each option."
     )]
-    public async Task<IActionResult> GetOptionsWithAnswerCount(Guid questionId)
+    public async Task<IActionResult> GetOptionsWithAnswerCount(Guid surveyId)
     {
-        var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(questionId);
+        var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(surveyId);
         return Ok(optionsWithAnswerCount);
     }
 }

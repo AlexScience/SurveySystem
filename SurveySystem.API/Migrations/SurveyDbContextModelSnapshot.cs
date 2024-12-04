@@ -33,13 +33,13 @@ namespace SurveySystem.API.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid>("IdQuestion")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("OptionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("QuestionId1")
+                    b.Property<Guid?>("QuestionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
@@ -48,71 +48,15 @@ namespace SurveySystem.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IdQuestion");
+
                     b.HasIndex("OptionId");
 
                     b.HasIndex("QuestionId");
 
-                    b.HasIndex("QuestionId1");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("answers", (string)null);
-                });
-
-            modelBuilder.Entity("SurveySystem.Models.Models.ApplicationUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(150)");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasColumnType("text");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("SurveySystem.Models.Models.Option", b =>
@@ -181,23 +125,80 @@ namespace SurveySystem.API.Migrations
                     b.ToTable("surveys", (string)null);
                 });
 
+            modelBuilder.Entity("SurveySystem.Models.Models.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("users", (string)null);
+                });
+
             modelBuilder.Entity("SurveySystem.Models.Models.Answer", b =>
                 {
-                    b.HasOne("SurveySystem.Models.Models.Option", "Option")
-                        .WithMany()
-                        .HasForeignKey("OptionId");
-
                     b.HasOne("SurveySystem.Models.Models.Question", "Question")
                         .WithMany()
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("IdQuestion")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("SurveySystem.Models.Models.Option", "Option")
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SurveySystem.Models.Models.Question", null)
                         .WithMany("Answers")
-                        .HasForeignKey("QuestionId1");
+                        .HasForeignKey("QuestionId");
 
-                    b.HasOne("SurveySystem.Models.Models.ApplicationUser", "User")
+                    b.HasOne("SurveySystem.Models.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

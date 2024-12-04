@@ -17,14 +17,17 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
 
         builder.HasOne(a => a.Question)
             .WithMany()
-            .HasForeignKey(a => a.QuestionId);
+            .HasForeignKey(a => a.IdQuestion)
+            .OnDelete(DeleteBehavior.Restrict); // если необходимо
 
         builder.HasOne(a => a.Option)
             .WithMany()
-            .HasForeignKey(a => a.OptionId);
+            .HasForeignKey(a => a.OptionId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(a => a.User)
             .WithMany()
-            .HasForeignKey(a => a.UserId);
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

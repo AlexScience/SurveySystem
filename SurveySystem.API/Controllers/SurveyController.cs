@@ -10,7 +10,7 @@ using Services.InterfaceServices;
 [Route("api/[controller]")]
 public class SurveysController(ISurveyService surveyService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("create")]
     [SwaggerOperation(
         Summary = "Create a new survey",
         Description = "Creates a new survey with the specified title, description, and questions."
@@ -20,7 +20,7 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
         try
         {
             var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
-            return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+            return CreatedAtAction(nameof(GetSurveyById), new { surveyId = createdSurvey.Id }, createdSurvey);
         }
         catch (ArgumentException ex)
         {

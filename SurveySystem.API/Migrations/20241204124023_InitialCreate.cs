@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SurveySystem.API.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -95,10 +95,11 @@ namespace SurveySystem.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IdQuestion = table.Column<Guid>(type: "uuid", nullable: false),
                     AnswerText = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     OptionId = table.Column<Guid>(type: "uuid", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    QuestionId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,13 +108,19 @@ namespace SurveySystem.API.Migrations
                         name: "FK_answers_options_OptionId",
                         column: x => x.OptionId,
                         principalTable: "options",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_answers_questions_IdQuestion",
+                        column: x => x.IdQuestion,
+                        principalTable: "questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_answers_questions_QuestionId",
                         column: x => x.QuestionId,
                         principalTable: "questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_answers_users_UserId",
                         column: x => x.UserId,
@@ -121,6 +128,11 @@ namespace SurveySystem.API.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_answers_IdQuestion",
+                table: "answers",
+                column: "IdQuestion");
 
             migrationBuilder.CreateIndex(
                 name: "IX_answers_OptionId",

@@ -1,8 +1,10 @@
-﻿namespace SurveySystem.Models.Models;
+﻿using System.Text.Json.Serialization;
 
-public record Answer(Guid Id, Guid QuestionId, string AnswerText, Guid? OptionId, string UserId)
+namespace SurveySystem.Models.Models;
+
+public record Answer(Guid Id, Guid IdQuestion, string AnswerText, Guid? OptionId, string UserId)
 {
-    public Question Question { get; set; } = default!;
-    public Option Option { get; set; } = default!;
-    public User User { get; set; } = default!;
+    [JsonIgnore] public Question Question { get; set; } = default!;
+    [JsonIgnore] public Option Option { get; set; } = default!;
+    [JsonIgnore] public User User { get; set; } = default!;
 }
