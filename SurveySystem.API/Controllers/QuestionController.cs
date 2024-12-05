@@ -17,12 +17,26 @@ public class QuestionController(IQuestionService questionService) : ControllerBa
     }
 
     [HttpPut("update-option/{id:guid}")]
-    public async Task<IActionResult> UpdateOption(Guid id, [FromBody] OptionUpdateDto optionCreateDto)
+    public async Task<IActionResult> UpdateOptions(Guid id, [FromBody] OptionUpdateDto optionUpdateDto)
     {
-        var resultOption = await questionService.UpdateOptionAsync(id, optionCreateDto);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
 
-        return Ok(resultOption);
+        try
+        {
+            var updatedQuestion = await questionService.UpdateOptionAsync(id, optionUpdateDto);
+            return Ok(updatedQuestion);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while updating the options.", details = ex.Message });
+        }
     }
-
-    
 }

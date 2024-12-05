@@ -59,7 +59,7 @@ public class AnswerServiceTests
 
         // Assert
         Assert.NotNull(answer);
-        Assert.Equal(answerDto.QuestionId, answer.IdQuestion);
+        Assert.Equal(answerDto.QuestionId, answer.QuestionId);
         Assert.Equal(answerDto.AnswerText, answer.AnswerText);
         Assert.Equal(answerDto.OptionId, answer.OptionId);
         Assert.Equal(answerDto.UserId, answer.UserId);

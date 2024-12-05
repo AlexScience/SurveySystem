@@ -6,6 +6,7 @@ namespace SurveySystem.API.DataAccess.Configuration;
 
 public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
 {
+    
     public void Configure(EntityTypeBuilder<Answer> builder)
     {
         builder.ToTable("answers");
@@ -16,9 +17,9 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
             .HasMaxLength(500);
 
         builder.HasOne(a => a.Question)
-            .WithMany()
-            .HasForeignKey(a => a.IdQuestion)
-            .OnDelete(DeleteBehavior.Restrict); // если необходимо
+            .WithMany(q => q.Answers)
+            .HasForeignKey(a => a.QuestionId) // Указываем внешний ключ
+            .OnDelete(DeleteBehavior.Restrict); // Удаление по требованию
 
         builder.HasOne(a => a.Option)
             .WithMany()

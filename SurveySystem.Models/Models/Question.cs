@@ -8,5 +8,5 @@ public record Question(Guid Id, string? Text, QuestionType Type, Guid SurveyId)
 
     public ICollection<Option> Options { get; set; } = new List<Option>();
     
-    public ICollection<Answer> Answers { get; set; } = new List<Answer>();
+    [JsonIgnore] public ICollection<Answer> Answers { get; set; } = new List<Answer>();
 }

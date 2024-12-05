@@ -5,6 +5,5 @@ namespace SurveySystem.DTO.DTO;
 public class OptionUpdateDto
 {
     [Required] 
-    [MaxLength(250)] 
-    public string Text { get; set; }
+    public List<OptionTextUpdate> Options { get; set; } = new();
 }

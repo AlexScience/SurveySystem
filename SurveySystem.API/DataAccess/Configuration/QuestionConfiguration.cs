@@ -21,5 +21,9 @@ public class QuestionConfiguration : IEntityTypeConfiguration<Question>
 
         builder.Property(q => q.Type)
             .IsRequired();
+
+        builder.HasMany(q => q.Answers)
+            .WithOne(a => a.Question)
+            .HasForeignKey(a => a.QuestionId); 
     }
 }
