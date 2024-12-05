@@ -11,7 +11,7 @@ public class SurveyService(SurveyDbContext context,IAnswerService answerService)
     public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
         // Создание нового опроса
-        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow);
+        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,surveyDto.Type);
 
         foreach (var questionDto in surveyDto.Questions)
         {
@@ -73,7 +73,7 @@ public class SurveyService(SurveyDbContext context,IAnswerService answerService)
             {
                 QuestionId = question.Id,
                 QuestionText = question.Text,
-                Options = optionsWithAnswerCount
+                Options = optionsWithAnswerCount,
             });
         }
 

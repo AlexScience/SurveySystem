@@ -8,14 +8,14 @@ using Services.InterfaceServices;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService) : ControllerBase
+public class SurveysController(ISurveyService surveyService, ICounterService counterService) : ControllerBase
 {
     [HttpPost("create")]
     [SwaggerOperation(
-        Summary = "Create a new survey",
-        Description = "Creates a new survey with the specified title, description, and questions."
+        Summary = "Create a new anonymous survey",
+        Description = "Creates a new anonymous survey with the specified title, description, and questions."
     )]
-    public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
+    public async Task<IActionResult> CreateAnonymousSurvey([FromBody] SurveyCreateDto surveyDto)
     {
         try
         {
@@ -59,5 +59,12 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
         var resultSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
 
         return Ok(resultSurvey);
+    }
+    
+    [HttpGet("{id:guid}/user-count")]
+    public async Task<IActionResult> GetUserCount(Guid id)
+    {
+        var userCount = await counterService.CountUniqueUsersAsync(id);
+        return Ok(new { SurveyId = id, UserCount = userCount });
     }
 }

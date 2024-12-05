@@ -19,5 +19,8 @@ public class SurveyConfiguration : IEntityTypeConfiguration<Survey>
 
         builder.Property(s => s.CreatedAt)
             .IsRequired();
+        
+        builder.Property(q => q.Type)
+            .IsRequired();
     }
 }

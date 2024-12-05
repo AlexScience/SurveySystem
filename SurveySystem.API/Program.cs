@@ -19,6 +19,7 @@ builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICounterService, CounterService>();
 
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
