@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SurveySystem.Models.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.DTO.DTO;
@@ -13,4 +14,8 @@ public class SurveyUpdateDto
     [MaxLength(500)]
     [SwaggerSchema("A detailed description of the survey")]
     public string? Description { get; set; }
+    
+    [Required]
+    [SwaggerSchema("Type of survey (Public, anonymous)")]
+    public SurveyType Type { get; set; }
 }

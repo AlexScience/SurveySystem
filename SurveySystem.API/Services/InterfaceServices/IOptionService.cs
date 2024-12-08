@@ -4,9 +4,8 @@ namespace SurveySystem.API.Services.InterfaceServices;
 
 public interface IOptionService
 {
-    Task<IEnumerable<Option>> GetOptionsByQuestionIdAsync(Guid questionId);
-    Task<Option?> GetOptionByIdAsync(Guid id);
-    Task<Option> CreateOptionAsync(Option option);
-    Task<Option> UpdateOptionAsync(Option option);
-    Task<bool> DeleteOptionAsync(Guid id);
+    public Task<IEnumerable<Option>> GetOptionsByQuestionIdAsync(Guid questionId);
+    public Task<Option?> GetOptionByIdAsync(Guid id);
+    public Task<Option> CreateOptionAsync(Option option);
+    public Task<bool> DeleteOptionAsync(Guid id);
 }

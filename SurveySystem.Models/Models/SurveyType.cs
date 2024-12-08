@@ -2,6 +2,6 @@
 
 public enum SurveyType
 {
-    OpenType = 0,
-    ClosedType = 1,
+    PublicType = 0,
+    AnonymousType = 1,
 }

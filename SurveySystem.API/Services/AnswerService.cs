@@ -68,10 +68,10 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
         if (survey == null)
             throw new ArgumentException($"Survey with ID {surveyId} not found.");
 
-        var questionIds = survey.Questions.Select(q => q.Id).ToList();
+        var questionsId = survey.Questions.Select(q => q.Id).ToList();
 
         var optionsWithCounts = await context.Answers
-            .Where(a => questionIds.Contains(a.QuestionId))
+            .Where(a => questionsId.Contains(a.QuestionId))
             .GroupBy(a => a.OptionId)
             .Select(g => new
             {
