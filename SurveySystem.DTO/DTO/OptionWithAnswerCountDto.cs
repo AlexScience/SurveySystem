@@ -9,5 +9,5 @@ public class OptionWithAnswerCountDto
     public int AnswerCount { get; set; }
     
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<CreateUserRequestDto> AnsweredUsers { get; set; } = new(); // Список пользователей
+    public List<CreateUserRequestDto> AnsweredUsers { get; set; } = new(); 
 }

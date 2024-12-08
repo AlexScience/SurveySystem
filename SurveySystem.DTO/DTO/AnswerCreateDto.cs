@@ -3,7 +3,9 @@
 public class AnswerCreateDto
 {
     public Guid QuestionId { get; set; }
-    public string AnswerText { get; set; }
-    public Guid? OptionId { get; set; }
-    public string UserId { get; set; } // Используйте идентификатор пользователя для связи с Identity
+    public Guid? OptionId { get; set; } // Для одиночного выбора
+
+    public List<Guid> OptionIds { get; set; } // Для множественного выбора
+    public string AnswerText { get; set; } // Для текстового ответа
+    public string UserId { get; set; }
 }

@@ -1,6 +1,6 @@
 ﻿namespace SurveySystem.DTO.DTO;
 
-public class CreateUserRequestDto
+public record CreateUserRequestDto
 {
     public string Id { get; init; } = string.Empty;
     public string Username { get; set; } = string.Empty;

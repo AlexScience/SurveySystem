@@ -10,29 +10,65 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
 {
     public async Task<Answer> CreateAnswerAsync(AnswerCreateDto answerDto)
     {
-        var answer = new Answer(Guid.NewGuid(), answerDto.QuestionId, answerDto.AnswerText, answerDto.OptionId,
-            answerDto.UserId);
-
+        // Получаем вопрос
         var question = await context.Questions.Include(q => q.Options)
             .FirstOrDefaultAsync(q => q.Id == answerDto.QuestionId);
+        
         if (question == null)
         {
             throw new ArgumentException("Invalid question ID");
         }
 
-        if (answerDto.OptionId.HasValue)
+        // Создаем объект для ответа
+        var answer = new Answer(Guid.NewGuid(), answerDto.QuestionId, answerDto.AnswerText, answerDto.OptionId, answerDto.UserId);
+
+        // Логика в зависимости от типа вопроса
+        if (question.Type == QuestionType.TextAnswer)
         {
-            var option = question.Options.FirstOrDefault(o => o.Id == answerDto.OptionId);
-            if (option != null)
+            // Для текстового ответа
+            if (string.IsNullOrWhiteSpace(answerDto.AnswerText))
             {
-                answer.Option = option;
+                throw new ArgumentException("Text answer cannot be empty.");
+            }
+
+            answer = answer with { AnswerText = answerDto.AnswerText };
+        }
+        else if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+        {
+            // Для вопросов с выбором (MultipleChoice или SingleChoice)
+            if (answerDto.OptionIds != null && answerDto.OptionIds.Any())
+            {
+                // Для MultipleChoice или SingleChoice проверяем, что опции существуют
+                var selectedOptions = new List<Option>();
+                foreach (var optionId in answerDto.OptionIds)
+                {
+                    var option = question.Options.FirstOrDefault(o => o.Id == optionId);
+                    if (option != null)
+                    {
+                        selectedOptions.Add(option);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Invalid option ID");
+                    }
+                }
+
+                // Для SingleChoice, мы разрешаем только один выбор
+                if (question.Type == QuestionType.SingleChoice && selectedOptions.Count > 1)
+                {
+                    throw new ArgumentException("Single choice question can only have one selected option.");
+                }
+
+                // Добавляем выбранные опции в ответ
+                answer.SelectedOptions = selectedOptions;
             }
             else
             {
-                throw new ArgumentException("Invalid option ID");
+                throw new ArgumentException("No options selected for a multiple choice or single choice question.");
             }
         }
 
+        // Проверка существования пользователя
         var userExists = await context.Users.AnyAsync(u => u.Id == answerDto.UserId);
         if (userExists)
         {
@@ -43,6 +79,7 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             throw new ArgumentException("Invalid User ID");
         }
 
+        // Сохраняем ответ
         context.Answers.Add(answer);
         await context.SaveChangesAsync();
 

@@ -6,13 +6,11 @@ using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
-public class SurveyService(SurveyDbContext context, IAnswerService answerService) : ISurveyService
+public class SurveyService(SurveyDbContext context) : ISurveyService
 {
     public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
-        // Создание нового опроса
-        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,
-            surveyDto.Type);
+        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow, surveyDto.Type);
 
         foreach (var questionDto in surveyDto.Questions)
         {
@@ -21,12 +19,11 @@ public class SurveyService(SurveyDbContext context, IAnswerService answerService
                 throw new ArgumentException("Question text cannot be null or empty", nameof(questionDto.Text));
             }
 
-            // Создание вопроса
-            var questionType = questionDto.Type; // Тип вопроса напрямую передаем
+            var questionType = questionDto.Type;
             var question = new Question(Guid.NewGuid(), questionDto.Text, questionType, survey.Id);
 
-            // Если тип вопроса — MultipleChoice, то добавляем опции
-            if (questionDto.Options != null && questionType == QuestionType.MultipleChoice)
+            // Если тип вопроса — MultipleChoice или SingleChoice, то добавляем опции
+            if (questionDto.Options != null && (questionType == QuestionType.MultipleChoice || questionType == QuestionType.SingleChoice))
             {
                 foreach (var optionDto in questionDto.Options)
                 {
@@ -47,10 +44,10 @@ public class SurveyService(SurveyDbContext context, IAnswerService answerService
         await context.SaveChangesAsync();
 
         // Формируем DTO для ответа
-        var surveyWithDetails = GetSurveyByIdAsync(survey.Id);
-
-        return await surveyWithDetails;
+        var surveyWithDetails = await GetSurveyByIdAsync(survey.Id);
+        return surveyWithDetails;
     }
+
 
     public async Task<SurveyWithAnswerCountDto> GetSurveyByIdAsync(Guid id)
     {
@@ -68,6 +65,7 @@ public class SurveyService(SurveyDbContext context, IAnswerService answerService
 
         var surveyWithAnswerCount = new SurveyWithAnswerCountDto
         {
+            Id = survey.Id,
             Title = survey.Title,
             Description = survey.Description,
             CreatedAt = survey.CreatedAt,

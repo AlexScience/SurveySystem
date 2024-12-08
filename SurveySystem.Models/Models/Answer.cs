@@ -7,4 +7,6 @@ public record Answer(Guid Id, Guid QuestionId, string AnswerText, Guid? OptionId
     [JsonIgnore] public Question Question { get; set; } = default!;
     [JsonIgnore] public Option Option { get; set; } = default!;
     [JsonIgnore] public User User { get; set; } = default!;
+
+    [JsonIgnore] public List<Option> SelectedOptions { get; set; } = default!; // Для MultipleChoice/SingleChoice
 }
