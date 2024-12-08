@@ -6,12 +6,13 @@ using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
-public class SurveyService(SurveyDbContext context,IAnswerService answerService) : ISurveyService
+public class SurveyService(SurveyDbContext context, IAnswerService answerService) : ISurveyService
 {
     public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
         // Создание нового опроса
-        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,surveyDto.Type);
+        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,
+            surveyDto.Type);
 
         foreach (var questionDto in surveyDto.Questions)
         {
@@ -54,40 +55,77 @@ public class SurveyService(SurveyDbContext context,IAnswerService answerService)
     public async Task<SurveyWithAnswerCountDto> GetSurveyByIdAsync(Guid id)
     {
         var survey = await context.Surveys.AsNoTracking()
-            .Include(survey => survey.Questions).ThenInclude(q => q.Answers)
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.Options)
+            .Include(s => s.Questions)
+            .ThenInclude(q => q.Answers).ThenInclude(answer => answer.User)
             .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (survey == null)
+        {
+            throw new KeyNotFoundException("Survey not found");
+        }
 
         var surveyWithAnswerCount = new SurveyWithAnswerCountDto
         {
-            Id = survey.Id,
             Title = survey.Title,
             Description = survey.Description,
             CreatedAt = survey.CreatedAt,
+            Type = survey.Type,
             Questions = new List<QuestionWithOptionsDto>()
         };
 
         foreach (var question in survey.Questions)
         {
-            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(id);
+            var optionsWithAnswerCount = new List<OptionWithAnswerCountDto>();
+
+            foreach (var option in question.Options)
+            {
+                // Список ответов для данной опции
+                var answers = question.Answers.Where(a => a.OptionId == option.Id).ToList();
+
+                // Если опрос анонимный, не включаем список пользователей
+                List<CreateUserRequestDto>? answeredUsers = null;
+
+                if (survey.Type == SurveyType.PublicType)
+                {
+                    answeredUsers = answers
+                        .Select(a => new CreateUserRequestDto { Id = a.UserId, Username = a.User.UserName })
+                        .ToList();
+                }
+
+                optionsWithAnswerCount.Add(new OptionWithAnswerCountDto
+                {
+                    OptionId = option.Id,
+                    Text = option.Text,
+                    AnswerCount = answers.Count,
+                    AnsweredUsers = answeredUsers // null для анонимных опросов
+                });
+            }
+
             surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
             {
                 QuestionId = question.Id,
                 QuestionText = question.Text,
-                Options = optionsWithAnswerCount,
+                Options = optionsWithAnswerCount
             });
         }
 
-        return  surveyWithAnswerCount;
+        return surveyWithAnswerCount;
     }
+
 
     public async Task<SurveyWithAnswerCountDto> UpdateSurveyAsync(Guid id, SurveyUpdateDto surveyUpdateDto)
     {
         var survey = await context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
-        survey = survey with { Title = surveyUpdateDto.Title, Description = surveyUpdateDto.Description };
+        survey = survey with
+        {
+            Title = surveyUpdateDto.Title, Description = surveyUpdateDto.Description, Type = surveyUpdateDto.Type
+        };
 
         context.Surveys.Update(survey);
         await context.SaveChangesAsync();
-        
+
         var surveyDto = GetSurveyByIdAsync(id);
 
         return await surveyDto;
