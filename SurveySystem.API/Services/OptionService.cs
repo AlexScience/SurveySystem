@@ -27,11 +27,6 @@ public class OptionService(SurveyDbContext context) : IOptionService
         return option;
     }
 
-    public Task<Option> UpdateOptionAsync(Option option)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<bool> DeleteOptionAsync(Guid id)
     {
         var option = await context.Options.FindAsync(id);

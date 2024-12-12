@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.DTO.DTO;
 
-public class QuestionCreateDto
+public record QuestionCreateDto
 {
     [Required]
     [MaxLength(200)]

@@ -5,7 +5,7 @@ namespace SurveySystem.API.Services.InterfaceServices;
 
 public interface IAnswerService
 {
+    public Task<Answer> SubmitAnswerAsync(Guid questionId, string userId, string? answerText, IEnumerable<Guid>? optionsId);
     public Task<Answer> GetAnswerByIdAsync(Guid id);
-    public Task<Answer> CreateAnswerAsync(AnswerCreateDto answerDto);
     public Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid questionId);
 }

@@ -9,16 +9,22 @@ using SurveySystem.Models.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Регистрация DbContext с подключением к базе данных
 builder.Services.AddDbContext<SurveyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgres")));
 
-// Регистрация сервисов
-builder.Services.AddScoped<IAnswerService, AnswerService>();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddScoped<ISurveyService, SurveyService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
 
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -28,12 +34,10 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
         options.Password.RequireNonAlphanumeric = false; // Не требовать спецсимволы
         options.Password.RequireUppercase = false; // Не требовать буквы в верхнем регистре
         options.Password.RequireLowercase = false; // Не требовать буквы в нижнем регистре
-    } )
+    })
     .AddEntityFrameworkStores<SurveyDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve; });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

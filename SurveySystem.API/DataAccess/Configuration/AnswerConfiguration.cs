@@ -11,20 +11,29 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
         builder.ToTable("answers");
 
         builder.HasKey(a => a.Id);
-
-        builder.Property(a => a.AnswerText)
-            .HasMaxLength(500);
-
+        builder.Property(a => a.AnswerText).HasMaxLength(1000);
         builder.HasOne(a => a.Question)
-            .WithMany()
-            .HasForeignKey(a => a.QuestionId);
-
-        builder.HasOne(a => a.Option)
-            .WithMany()
-            .HasForeignKey(a => a.OptionId);
-
+            .WithMany(q => q.Answers)
+            .HasForeignKey(a => a.QuestionId)
+            .OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(a => a.User)
             .WithMany()
-            .HasForeignKey(a => a.UserId);
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(a => a.SelectedOptions)
+            .WithMany(o => o.Answers)
+            .UsingEntity<Dictionary<string, object>>(
+                "AnswerSelectedOptions",
+                join => join
+                    .HasOne<Option>()
+                    .WithMany()
+                    .HasForeignKey("OptionId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                join => join
+                    .HasOne<Answer>()
+                    .WithMany()
+                    .HasForeignKey("AnswerId")
+                    .OnDelete(DeleteBehavior.Cascade));
     }
 }

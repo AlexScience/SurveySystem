@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SurveySystem.API.Services.InterfaceServices;
-using SurveySystem.DTO.DTO;
-using Swashbuckle.AspNetCore.Annotations;
+using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Controllers;
 
@@ -9,26 +8,67 @@ namespace SurveySystem.API.Controllers;
 [Route("api/[controller]")]
 public class AnswerController(IAnswerService answerService) : ControllerBase
 {
-    [HttpPost("create")]
-    [SwaggerOperation(
-        Summary = "Submit an answer to a question",
-        Description = "Allows a user to submit an answer to a specific question."
-    )]
-    public async Task<IActionResult> SubmitAnswer([FromBody] AnswerCreateDto answerDto)
+    [HttpPost("submit")]
+    public async Task<IActionResult> SubmitAnswer([FromBody] SubmitAnswerRequest request)
     {
-        var answer = await answerService.CreateAnswerAsync(answerDto);
-        return CreatedAtAction(nameof(SubmitAnswer), new { id = answer.Id }, answer);
+        try
+        {
+            var answer = await answerService.SubmitAnswerAsync(
+                request.QuestionId,
+                request.UserId,
+                request.AnswerText,
+                request.OptionsId
+            );
+            return Ok(answer);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return UnprocessableEntity(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal Server Error: {ex.Message}");
+        }
+    }
+    
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetAnswerById(Guid id)
+    {
+        try
+        {
+            var answer = await answerService.GetAnswerByIdAsync(id);
+            return Ok(answer);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal Server Error: {ex.Message}");
+        }
     }
 
-    [HttpGet("options/{questionId}")]
-    [SwaggerOperation(
-        Summary = "Get options with answer count",
-        Description =
-            "Retrieves the options for a specific question along with the count of answers submitted for each option."
-    )]
-    public async Task<IActionResult> GetOptionsWithAnswerCount(Guid questionId)
+    [HttpGet("survey/{surveyId}/options")]
+    public async Task<IActionResult> GetOptionsWithAnswerCount(Guid surveyId)
     {
-        var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(questionId);
-        return Ok(optionsWithAnswerCount);
+        try
+        {
+            var optionsWithCounts = await answerService.GetOptionsWithAnswerCountAsync(surveyId);
+            return Ok(optionsWithCounts);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while processing your request", details = ex.Message });
+        }
     }
 }

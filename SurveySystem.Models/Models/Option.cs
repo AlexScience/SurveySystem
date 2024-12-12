@@ -1,9 +1,6 @@
-﻿using System.Text.Json.Serialization;
-
-namespace SurveySystem.Models.Models;
+﻿namespace SurveySystem.Models.Models;
 
 public record Option(Guid Id, string Text, Guid QuestionId)
 {
-    [JsonIgnore]
-    public Question Question { get; set; }
+    public ICollection<Answer> Answers { get; set; } = new List<Answer>();
 }

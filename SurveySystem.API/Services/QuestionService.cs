@@ -10,16 +10,24 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
 {
     public async Task<Question> UpdateQuestionAsync(Guid id, QuestionUpdateDto questionUpdateDto)
     {
-        var question = await context.Questions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == id);
+        var question = await context.Questions.FirstOrDefaultAsync(q => q.Id == id);
+
+        if (question == null)
+        {
+            throw new ArgumentException($"Question with ID {id} not found.");
+        }
+
         question = question with { Text = questionUpdateDto.Text };
         context.Questions.Update(question);
         await context.SaveChangesAsync();
+
         return question;
     }
-
-    public async Task<Question> UpdateOptionAsync(Guid id, OptionUpdateDto optionCreateDto)
+    
+    public async Task<Question> UpdateOptionAsync(Guid id, OptionUpdateDto optionUpdateDto)
     {
-        var question = await context.Questions.Include(q => q.Options).AsNoTracking() 
+        var question = await context.Questions
+            .Include(q => q.Options)
             .FirstOrDefaultAsync(q => q.Id == id);
 
         if (question == null)
@@ -27,14 +35,18 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
             throw new ArgumentException($"Question with ID {id} not found.");
         }
 
-        // Обновляем коллекцию Options, создавая новые объекты с изменённым Text
-        question = question with
+        foreach (var optionUpdate in optionUpdateDto.Options)
         {
-            Options = question.Options.Select(option => option with
+            var option = question.Options.FirstOrDefault(o => o.Id == optionUpdate.OptionId);
+            if (option != null)
             {
-                Text = optionCreateDto.Text
-            }).ToList()
-        };
+                option = option with { Text = optionUpdate.Text };
+            }
+            else
+            {
+                throw new ArgumentException($"Option with ID {optionUpdate.OptionId} not found in question.");
+            }
+        }
 
         context.Questions.Update(question);
         await context.SaveChangesAsync();

@@ -1,4 +1,5 @@
 ﻿using SurveySystem.DTO.DTO;
+using SurveySystem.Models.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SurveySystem.API.Controllers;
@@ -10,17 +11,22 @@ using Services.InterfaceServices;
 [Route("api/[controller]")]
 public class SurveysController(ISurveyService surveyService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("create")]
     [SwaggerOperation(
         Summary = "Create a new survey",
-        Description = "Creates a new survey with the specified title, description, and questions."
+        Description = "Creates a new survey with the specified title, description, questions, and survey type."
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
         try
         {
+            if (!Enum.IsDefined(typeof(SurveyType), surveyDto.Type))
+            {
+                return BadRequest("Invalid survey type.");
+            }
+
             var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
-            return CreatedAtAction(nameof(GetSurveyById), new { id = createdSurvey.Id }, createdSurvey);
+            return CreatedAtAction(nameof(GetSurveyById), new { surveyId = createdSurvey.Id }, createdSurvey);
         }
         catch (ArgumentException ex)
         {
@@ -44,20 +50,45 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
             return BadRequest("Survey ID cannot be empty.");
         }
 
-        var survey = await surveyService.GetSurveyByIdAsync(surveyId);
+        try
+        {
+            var survey = await surveyService.GetSurveyByIdAsync(surveyId);
 
-        return Ok(survey);
+            return Ok(survey);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while processing your request", details = ex.Message });
+        }
     }
+
 
     [HttpPut("{id:guid}")]
     [SwaggerOperation(
         Summary = "Update a survey by ID",
-        Description = "Editing the survey title and description"
+        Description = "Editing the survey title, description, and type"
     )]
     public async Task<IActionResult> UpdateSurvey(Guid id, [FromBody] SurveyUpdateDto surveyUpdateDto)
     {
-        var resultSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
+        try
+        {
+            if (!Enum.IsDefined(typeof(SurveyType), surveyUpdateDto.Type))
+            {
+                return BadRequest("Invalid survey type.");
+            }
 
-        return Ok(resultSurvey);
+            var updatedSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
+
+            return Ok(updatedSurvey);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
     }
 }

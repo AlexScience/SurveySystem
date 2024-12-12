@@ -6,12 +6,12 @@ using SurveySystem.Models.Models;
 
 namespace SurveySystem.API.Services;
 
-public class SurveyService(SurveyDbContext context,IAnswerService answerService) : ISurveyService
+public class SurveyService(SurveyDbContext context) : ISurveyService
 {
     public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
-        // Создание нового опроса
-        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow);
+        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,
+            surveyDto.Type);
 
         foreach (var questionDto in surveyDto.Questions)
         {
@@ -20,12 +20,11 @@ public class SurveyService(SurveyDbContext context,IAnswerService answerService)
                 throw new ArgumentException("Question text cannot be null or empty", nameof(questionDto.Text));
             }
 
-            // Создание вопроса
-            var questionType = questionDto.Type; // Тип вопроса напрямую передаем
+            var questionType = questionDto.Type;
             var question = new Question(Guid.NewGuid(), questionDto.Text, questionType, survey.Id);
 
-            // Если тип вопроса — MultipleChoice, то добавляем опции
-            if (questionDto.Options != null && questionType == QuestionType.MultipleChoice)
+            if (questionDto.Options != null && (questionType == QuestionType.MultipleChoice ||
+                                                questionType == QuestionType.SingleChoice))
             {
                 foreach (var optionDto in questionDto.Options)
                 {
@@ -45,49 +44,60 @@ public class SurveyService(SurveyDbContext context,IAnswerService answerService)
         await context.Surveys.AddAsync(survey);
         await context.SaveChangesAsync();
 
-        // Формируем DTO для ответа
-        var surveyWithDetails = GetSurveyByIdAsync(survey.Id);
-
-        return await surveyWithDetails;
+        var surveyWithDetails = await GetSurveyByIdAsync(survey.Id);
+        return surveyWithDetails;
     }
 
     public async Task<SurveyWithAnswerCountDto> GetSurveyByIdAsync(Guid id)
     {
         var survey = await context.Surveys.AsNoTracking()
-            .Include(survey => survey.Questions).ThenInclude(q => q.Answers)
-            .FirstOrDefaultAsync(s => s.Id == id);
-
-        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
-        {
-            Id = survey.Id,
-            Title = survey.Title,
-            Description = survey.Description,
-            CreatedAt = survey.CreatedAt,
-            Questions = new List<QuestionWithOptionsDto>()
-        };
-
-        foreach (var question in survey.Questions)
-        {
-            var optionsWithAnswerCount = await answerService.GetOptionsWithAnswerCountAsync(id);
-            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
+            .Where(s => s.Id == id)
+            .Select(s => new SurveyWithAnswerCountDto
             {
-                QuestionId = question.Id,
-                QuestionText = question.Text,
-                Options = optionsWithAnswerCount
-            });
-        }
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                CreatedAt = s.CreatedAt,
+                Type = s.Type,
+                Questions = s.Questions.Select(q => new QuestionWithOptionsDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.Text,
+                    Options = q.Options.Select(o => new OptionWithAnswerCountDto
+                    {
+                        OptionId = o.Id,
+                        Text = o.Text,
+                        AnswerCount = q.Answers.Count(a => a.SelectedOptions.Any(opt => opt.Id == o.Id)),
+                        AnsweredUsers = s.Type == SurveyType.PublicType
+                            ? q.Answers.Where(a => a.SelectedOptions.Any(opt => opt.Id == o.Id))
+                                .Select(a => new CreateUserRequestDto
+                                {
+                                    Id = a.UserId,
+                                    Username = a.User != null ? a.User.UserName : "Unknown"
+                                }).ToList()
+                            : null
+                    }).ToList()
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
-        return  surveyWithAnswerCount;
+        if (survey == null)
+            throw new KeyNotFoundException("Survey not found");
+
+        return survey;
     }
 
     public async Task<SurveyWithAnswerCountDto> UpdateSurveyAsync(Guid id, SurveyUpdateDto surveyUpdateDto)
     {
         var survey = await context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
-        survey = survey with { Title = surveyUpdateDto.Title, Description = surveyUpdateDto.Description };
+        survey = survey with
+        {
+            Title = surveyUpdateDto.Title, Description = surveyUpdateDto.Description, Type = surveyUpdateDto.Type
+        };
 
         context.Surveys.Update(survey);
         await context.SaveChangesAsync();
-        
+
         var surveyDto = GetSurveyByIdAsync(id);
 
         return await surveyDto;
