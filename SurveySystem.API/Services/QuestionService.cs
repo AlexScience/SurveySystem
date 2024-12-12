@@ -10,18 +10,24 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
 {
     public async Task<Question> UpdateQuestionAsync(Guid id, QuestionUpdateDto questionUpdateDto)
     {
-        var question = await context.Questions.AsNoTracking().FirstOrDefaultAsync(q => q.Id == id);
+        var question = await context.Questions.FirstOrDefaultAsync(q => q.Id == id);
+
+        if (question == null)
+        {
+            throw new ArgumentException($"Question with ID {id} not found.");
+        }
+
         question = question with { Text = questionUpdateDto.Text };
         context.Questions.Update(question);
         await context.SaveChangesAsync();
+
         return question;
     }
-
+    
     public async Task<Question> UpdateOptionAsync(Guid id, OptionUpdateDto optionUpdateDto)
     {
         var question = await context.Questions
             .Include(q => q.Options)
-            .AsNoTracking()
             .FirstOrDefaultAsync(q => q.Id == id);
 
         if (question == null)
@@ -34,9 +40,7 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
             var option = question.Options.FirstOrDefault(o => o.Id == optionUpdate.OptionId);
             if (option != null)
             {
-                var updatedOption = option with { Text = optionUpdate.Text };
-                question.Options.Remove(option);
-                question.Options.Add(updatedOption);
+                option = option with { Text = optionUpdate.Text };
             }
             else
             {
@@ -49,7 +53,6 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
 
         return question;
     }
-
 
     public async Task<bool> DeleteQuestionAsync(Guid id)
     {

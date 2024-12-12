@@ -4,9 +4,8 @@ namespace SurveySystem.Models.Models;
 
 public record Question(Guid Id, string? Text, QuestionType Type, Guid SurveyId)
 {
-    [JsonIgnore] public Survey Survey { get; set; }
-
+    [JsonIgnore]
+    public Survey Survey { get; set; } = default!;
     public ICollection<Option> Options { get; set; } = new List<Option>();
-    
-    [JsonIgnore] public ICollection<Answer> Answers { get; set; } = new List<Answer>();
+    public ICollection<Answer> Answers { get; set; } = new List<Answer>();
 }

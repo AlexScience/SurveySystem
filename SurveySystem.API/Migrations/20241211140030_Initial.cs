@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SurveySystem.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,8 @@ namespace SurveySystem.API.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,7 +31,7 @@ namespace SurveySystem.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    FullName = table.Column<string>(type: "varchar(150)", maxLength: 200, nullable: true),
+                    FullName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     UserName = table.Column<string>(type: "text", nullable: true),
                     NormalizedUserName = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: true),
@@ -56,7 +57,7 @@ namespace SurveySystem.API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    Text = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     SurveyId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -72,11 +73,37 @@ namespace SurveySystem.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "answers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    QuestionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AnswerText = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_answers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_answers_questions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_answers_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "options",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Text = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    Text = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     QuestionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -91,53 +118,28 @@ namespace SurveySystem.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "answers",
+                name: "AnswerSelectedOptions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    IdQuestion = table.Column<Guid>(type: "uuid", nullable: false),
-                    AnswerText = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    OptionId = table.Column<Guid>(type: "uuid", nullable: true),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    QuestionId = table.Column<Guid>(type: "uuid", nullable: true)
+                    AnswerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OptionId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_answers", x => x.Id);
+                    table.PrimaryKey("PK_AnswerSelectedOptions", x => new { x.AnswerId, x.OptionId });
                     table.ForeignKey(
-                        name: "FK_answers_options_OptionId",
+                        name: "FK_AnswerSelectedOptions_answers_AnswerId",
+                        column: x => x.AnswerId,
+                        principalTable: "answers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AnswerSelectedOptions_options_OptionId",
                         column: x => x.OptionId,
                         principalTable: "options",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_answers_questions_IdQuestion",
-                        column: x => x.IdQuestion,
-                        principalTable: "questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_answers_questions_QuestionId",
-                        column: x => x.QuestionId,
-                        principalTable: "questions",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_answers_users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "users",
-                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_answers_IdQuestion",
-                table: "answers",
-                column: "IdQuestion");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_answers_OptionId",
-                table: "answers",
-                column: "OptionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_answers_QuestionId",
@@ -150,6 +152,11 @@ namespace SurveySystem.API.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AnswerSelectedOptions_OptionId",
+                table: "AnswerSelectedOptions",
+                column: "OptionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_options_QuestionId",
                 table: "options",
                 column: "QuestionId");
@@ -158,11 +165,20 @@ namespace SurveySystem.API.Migrations
                 name: "IX_questions_SurveyId",
                 table: "questions",
                 column: "SurveyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_UserName",
+                table: "users",
+                column: "UserName",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AnswerSelectedOptions");
+
             migrationBuilder.DropTable(
                 name: "answers");
 

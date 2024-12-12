@@ -11,7 +11,10 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("users");
 
         builder.Property(u => u.FullName)
-            .HasColumnType("varchar(150)")
-            .HasMaxLength(200);
+            .HasMaxLength(500)
+            .IsRequired(false); 
+        
+        builder.HasIndex(u => u.UserName)
+            .IsUnique(); 
     }
 }

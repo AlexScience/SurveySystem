@@ -13,7 +13,7 @@ public class SurveyCreateDto
 
     [MaxLength(500)]
     [SwaggerSchema("A detailed description of the survey")]
-    public string? Description { get; set; }
+    public string? Description { get; set; } = default!;
     
     [Required]
     [SwaggerSchema("Type of survey (Public, anonymous)")]

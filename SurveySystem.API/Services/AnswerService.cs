@@ -8,78 +8,57 @@ namespace SurveySystem.API.Services;
 
 public class AnswerService(SurveyDbContext context) : IAnswerService
 {
-    public async Task<Answer> CreateAnswerAsync(AnswerCreateDto answerDto)
+    public async Task<Answer> SubmitAnswerAsync(Guid questionId, string userId, string? answerText,
+        IEnumerable<Guid>? optionsId)
     {
-        // Получаем вопрос
-        var question = await context.Questions.Include(q => q.Options)
-            .FirstOrDefaultAsync(q => q.Id == answerDto.QuestionId);
-        
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("User ID cannot be null or empty.", nameof(userId));
+
+        if (questionId == Guid.Empty)
+            throw new ArgumentException("Question ID cannot be empty.", nameof(questionId));
+
+        var question = await context.Questions
+            .Include(q => q.Options)
+            .FirstOrDefaultAsync(q => q.Id == questionId);
+
         if (question == null)
+            throw new ArgumentException("Invalid question ID.");
+
+        switch (question.Type)
         {
-            throw new ArgumentException("Invalid question ID");
+            case QuestionType.SingleChoice:
+                if (optionsId == null || optionsId.Count() != 1)
+                    throw new ArgumentException("For single choice questions, exactly one option must be selected.");
+                break;
+
+            case QuestionType.MultipleChoice:
+                if (optionsId == null || !optionsId.Any())
+                    throw new ArgumentException("For multiple choice questions, at least one option must be selected.");
+                break;
+
+            case QuestionType.TextAnswer:
+                if (string.IsNullOrWhiteSpace(answerText))
+                    throw new ArgumentException("For text questions, an answer text must be provided.");
+                break;
+
+            default:
+                throw new InvalidOperationException("Unsupported question type.");
         }
 
-        // Создаем объект для ответа
-        var answer = new Answer(Guid.NewGuid(), answerDto.QuestionId, answerDto.AnswerText, answerDto.OptionId, answerDto.UserId);
-
-        // Логика в зависимости от типа вопроса
-        if (question.Type == QuestionType.TextAnswer)
+        if ((question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+            && optionsId != null
+            && optionsId.Any(id => !question.Options.Any(o => o.Id == id)))
         {
-            // Для текстового ответа
-            if (string.IsNullOrWhiteSpace(answerDto.AnswerText))
-            {
-                throw new ArgumentException("Text answer cannot be empty.");
-            }
-
-            answer = answer with { AnswerText = answerDto.AnswerText };
-        }
-        else if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
-        {
-            // Для вопросов с выбором (MultipleChoice или SingleChoice)
-            if (answerDto.OptionIds != null && answerDto.OptionIds.Any())
-            {
-                // Для MultipleChoice или SingleChoice проверяем, что опции существуют
-                var selectedOptions = new List<Option>();
-                foreach (var optionId in answerDto.OptionIds)
-                {
-                    var option = question.Options.FirstOrDefault(o => o.Id == optionId);
-                    if (option != null)
-                    {
-                        selectedOptions.Add(option);
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Invalid option ID");
-                    }
-                }
-
-                // Для SingleChoice, мы разрешаем только один выбор
-                if (question.Type == QuestionType.SingleChoice && selectedOptions.Count > 1)
-                {
-                    throw new ArgumentException("Single choice question can only have one selected option.");
-                }
-
-                // Добавляем выбранные опции в ответ
-                answer.SelectedOptions = selectedOptions;
-            }
-            else
-            {
-                throw new ArgumentException("No options selected for a multiple choice or single choice question.");
-            }
+            throw new ArgumentException("One or more selected options do not belong to the specified question.");
         }
 
-        // Проверка существования пользователя
-        var userExists = await context.Users.AnyAsync(u => u.Id == answerDto.UserId);
-        if (userExists)
+        var answer = new Answer(Guid.NewGuid(), questionId, question.Type == QuestionType.TextAnswer ? answerText : null, userId)
         {
-            answer.User = await context.Users.FirstOrDefaultAsync(a => a.Id == answerDto.UserId);
-        }
-        else
-        {
-            throw new ArgumentException("Invalid User ID");
-        }
+            SelectedOptions = question.Type != QuestionType.TextAnswer
+                ? question.Options.Where(o => optionsId!.Contains(o.Id)).ToList()
+                : new List<Option>()
+        };
 
-        // Сохраняем ответ
         context.Answers.Add(answer);
         await context.SaveChangesAsync();
 
@@ -88,11 +67,16 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
 
     public async Task<Answer> GetAnswerByIdAsync(Guid id)
     {
-        return await context.Answers
-            .Include(a => a.Question)
-            .Include(a => a.Option)
+        var answer = await context.Answers.Include(a => a.Question)
+            .ThenInclude(q => q.Options)
             .Include(a => a.User)
+            .Include(a => a.SelectedOptions)
             .FirstOrDefaultAsync(a => a.Id == id);
+
+        if (answer == null)
+            throw new KeyNotFoundException($"Answer with ID {id} not found.");
+
+        return answer;
     }
 
     public async Task<List<OptionWithAnswerCountDto>> GetOptionsWithAnswerCountAsync(Guid surveyId)
@@ -103,13 +87,14 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             .FirstOrDefaultAsync(s => s.Id == surveyId);
 
         if (survey == null)
-            throw new ArgumentException($"Survey with ID {surveyId} not found.");
+            throw new KeyNotFoundException($"Survey with ID {surveyId} not found.");
 
         var questionsId = survey.Questions.Select(q => q.Id).ToList();
 
-        var optionsWithCounts = await context.Answers
-            .Where(a => questionsId.Contains(a.QuestionId))
-            .GroupBy(a => a.OptionId)
+        var optionAnswerCounts = await context.Answers
+            .Where(a => questionsId.Contains(a.QuestionId) && a.SelectedOptions.Any())
+            .SelectMany(a => a.SelectedOptions)
+            .GroupBy(option => option.Id)
             .Select(g => new
             {
                 OptionId = g.Key,
@@ -117,13 +102,16 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
             })
             .ToListAsync();
 
+        var optionAnswerCountsDict = optionAnswerCounts.ToDictionary(o => o.OptionId, o => o.AnswerCount);
+
         var result = survey.Questions
             .SelectMany(q => q.Options)
             .Select(option => new OptionWithAnswerCountDto
             {
                 OptionId = option.Id,
                 Text = option.Text,
-                AnswerCount = optionsWithCounts.FirstOrDefault(o => o.OptionId == option.Id)?.AnswerCount ?? 0
+                AnswerCount =
+                    optionAnswerCountsDict.GetValueOrDefault(option.Id, 0)
             })
             .ToList();
 

@@ -12,8 +12,8 @@ using SurveySystem.API.DataAccess;
 namespace SurveySystem.API.Migrations
 {
     [DbContext(typeof(SurveyDbContext))]
-    [Migration("20241204151053_FixAnswerConfiguration")]
-    partial class FixAnswerConfiguration
+    [Migration("20241211140030_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,21 @@ namespace SurveySystem.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AnswerSelectedOptions", b =>
+                {
+                    b.Property<Guid>("AnswerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OptionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AnswerId", "OptionId");
+
+                    b.HasIndex("OptionId");
+
+                    b.ToTable("AnswerSelectedOptions");
+                });
+
             modelBuilder.Entity("SurveySystem.Models.Models.Answer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -32,12 +47,8 @@ namespace SurveySystem.API.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AnswerText")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid?>("OptionId")
-                        .HasColumnType("uuid");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
@@ -47,8 +58,6 @@ namespace SurveySystem.API.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OptionId");
 
                     b.HasIndex("QuestionId");
 
@@ -68,8 +77,8 @@ namespace SurveySystem.API.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
 
@@ -88,8 +97,8 @@ namespace SurveySystem.API.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Text")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -118,6 +127,9 @@ namespace SurveySystem.API.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("surveys", (string)null);
@@ -141,8 +153,8 @@ namespace SurveySystem.API.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("FullName")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(150)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -176,29 +188,40 @@ namespace SurveySystem.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("AnswerSelectedOptions", b =>
+                {
+                    b.HasOne("SurveySystem.Models.Models.Answer", null)
+                        .WithMany()
+                        .HasForeignKey("AnswerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SurveySystem.Models.Models.Option", null)
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SurveySystem.Models.Models.Answer", b =>
                 {
-                    b.HasOne("SurveySystem.Models.Models.Option", "Option")
-                        .WithMany()
-                        .HasForeignKey("OptionId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("SurveySystem.Models.Models.Question", "Question")
                         .WithMany("Answers")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SurveySystem.Models.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Option");
 
                     b.Navigation("Question");
 
@@ -207,13 +230,11 @@ namespace SurveySystem.API.Migrations
 
             modelBuilder.Entity("SurveySystem.Models.Models.Option", b =>
                 {
-                    b.HasOne("SurveySystem.Models.Models.Question", "Question")
+                    b.HasOne("SurveySystem.Models.Models.Question", null)
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("SurveySystem.Models.Models.Question", b =>

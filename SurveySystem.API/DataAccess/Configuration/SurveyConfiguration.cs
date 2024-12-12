@@ -9,18 +9,15 @@ public class SurveyConfiguration : IEntityTypeConfiguration<Survey>
     public void Configure(EntityTypeBuilder<Survey> builder)
     {
         builder.ToTable("surveys");
+
         builder.HasKey(s => s.Id);
-
         builder.Property(s => s.Title)
-            .HasMaxLength(200);
-
+            .HasMaxLength(500);
         builder.Property(s => s.Description)
             .HasMaxLength(1000);
-
         builder.Property(s => s.CreatedAt)
             .IsRequired();
-        
-        builder.Property(q => q.Type)
+        builder.Property(s => s.Type)
             .IsRequired();
     }
 }

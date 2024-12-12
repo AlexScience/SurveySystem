@@ -2,11 +2,13 @@
 
 namespace SurveySystem.Models.Models;
 
-public record Answer(Guid Id, Guid QuestionId, string AnswerText, Guid? OptionId, string UserId)
+public record Answer(Guid Id, Guid QuestionId, string? AnswerText, string UserId)
 {
-    [JsonIgnore] public Question Question { get; set; } = default!;
-    [JsonIgnore] public Option Option { get; set; } = default!;
-    [JsonIgnore] public User User { get; set; } = default!;
-
-    [JsonIgnore] public List<Option> SelectedOptions { get; set; } = default!; // Для MultipleChoice/SingleChoice
+    [JsonIgnore]
+    public Question Question { get; set; } = default!;
+    [JsonIgnore]
+    public User User { get; set; } = default!;
+    public ICollection<Option> SelectedOptions { get; set; } = new List<Option>();
+    [JsonIgnore]
+    public Option? SelectedOption => SelectedOptions.Count == 1 ? SelectedOptions.First() : null;
 }

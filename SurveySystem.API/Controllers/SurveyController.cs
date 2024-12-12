@@ -9,7 +9,7 @@ using Services.InterfaceServices;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SurveysController(ISurveyService surveyService, ICounterService counterService) : ControllerBase
+public class SurveysController(ISurveyService surveyService) : ControllerBase
 {
     [HttpPost("create")]
     [SwaggerOperation(
@@ -20,7 +20,6 @@ public class SurveysController(ISurveyService surveyService, ICounterService cou
     {
         try
         {
-            // Проверка типа опроса
             if (!Enum.IsDefined(typeof(SurveyType), surveyDto.Type))
             {
                 return BadRequest("Invalid survey type.");
@@ -51,10 +50,19 @@ public class SurveysController(ISurveyService surveyService, ICounterService cou
             return BadRequest("Survey ID cannot be empty.");
         }
 
-        var survey = await surveyService.GetSurveyByIdAsync(surveyId);
+        try
+        {
+            var survey = await surveyService.GetSurveyByIdAsync(surveyId);
 
-        return Ok(survey);
+            return Ok(survey);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { message = "An error occurred while processing your request", details = ex.Message });
+        }
     }
+
 
     [HttpPut("{id:guid}")]
     [SwaggerOperation(
@@ -65,18 +73,12 @@ public class SurveysController(ISurveyService surveyService, ICounterService cou
     {
         try
         {
-            // Проверка типа опроса
             if (!Enum.IsDefined(typeof(SurveyType), surveyUpdateDto.Type))
             {
                 return BadRequest("Invalid survey type.");
             }
 
             var updatedSurvey = await surveyService.UpdateSurveyAsync(id, surveyUpdateDto);
-
-            if (updatedSurvey == null)
-            {
-                return NotFound($"Survey with ID {id} was not found.");
-            }
 
             return Ok(updatedSurvey);
         }
@@ -88,23 +90,5 @@ public class SurveysController(ISurveyService surveyService, ICounterService cou
         {
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
-    }
-
-    [HttpGet("{id:guid}/user-count")]
-    public async Task<IActionResult> GetUserCount(Guid id)
-    {
-        if (id == Guid.Empty)
-        {
-            return BadRequest("Survey ID cannot be empty.");
-        }
-
-        var surveyExists = await surveyService.GetSurveyByIdAsync(id);
-        if (surveyExists == null)
-        {
-            return NotFound($"Survey with ID {id} was not found.");
-        }
-
-        var userCount = await counterService.CountUniqueUsersAsync(id);
-        return Ok(new { SurveyId = id, UserCount = userCount });
     }
 }

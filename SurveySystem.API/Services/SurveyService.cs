@@ -10,7 +10,8 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
 {
     public async Task<SurveyWithAnswerCountDto> CreateSurveyAsync(SurveyCreateDto surveyDto)
     {
-        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow, surveyDto.Type);
+        var survey = new Survey(Guid.NewGuid(), surveyDto.Title, surveyDto.Description, DateTime.UtcNow,
+            surveyDto.Type);
 
         foreach (var questionDto in surveyDto.Questions)
         {
@@ -22,8 +23,8 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
             var questionType = questionDto.Type;
             var question = new Question(Guid.NewGuid(), questionDto.Text, questionType, survey.Id);
 
-            // Если тип вопроса — MultipleChoice или SingleChoice, то добавляем опции
-            if (questionDto.Options != null && (questionType == QuestionType.MultipleChoice || questionType == QuestionType.SingleChoice))
+            if (questionDto.Options != null && (questionType == QuestionType.MultipleChoice ||
+                                                questionType == QuestionType.SingleChoice))
             {
                 foreach (var optionDto in questionDto.Options)
                 {
@@ -43,75 +44,48 @@ public class SurveyService(SurveyDbContext context) : ISurveyService
         await context.Surveys.AddAsync(survey);
         await context.SaveChangesAsync();
 
-        // Формируем DTO для ответа
         var surveyWithDetails = await GetSurveyByIdAsync(survey.Id);
         return surveyWithDetails;
     }
 
-
     public async Task<SurveyWithAnswerCountDto> GetSurveyByIdAsync(Guid id)
     {
         var survey = await context.Surveys.AsNoTracking()
-            .Include(s => s.Questions)
-            .ThenInclude(q => q.Options)
-            .Include(s => s.Questions)
-            .ThenInclude(q => q.Answers).ThenInclude(answer => answer.User)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .Where(s => s.Id == id)
+            .Select(s => new SurveyWithAnswerCountDto
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                CreatedAt = s.CreatedAt,
+                Type = s.Type,
+                Questions = s.Questions.Select(q => new QuestionWithOptionsDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.Text,
+                    Options = q.Options.Select(o => new OptionWithAnswerCountDto
+                    {
+                        OptionId = o.Id,
+                        Text = o.Text,
+                        AnswerCount = q.Answers.Count(a => a.SelectedOptions.Any(opt => opt.Id == o.Id)),
+                        AnsweredUsers = s.Type == SurveyType.PublicType
+                            ? q.Answers.Where(a => a.SelectedOptions.Any(opt => opt.Id == o.Id))
+                                .Select(a => new CreateUserRequestDto
+                                {
+                                    Id = a.UserId,
+                                    Username = a.User != null ? a.User.UserName : "Unknown"
+                                }).ToList()
+                            : null
+                    }).ToList()
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
         if (survey == null)
-        {
             throw new KeyNotFoundException("Survey not found");
-        }
 
-        var surveyWithAnswerCount = new SurveyWithAnswerCountDto
-        {
-            Id = survey.Id,
-            Title = survey.Title,
-            Description = survey.Description,
-            CreatedAt = survey.CreatedAt,
-            Type = survey.Type,
-            Questions = new List<QuestionWithOptionsDto>()
-        };
-
-        foreach (var question in survey.Questions)
-        {
-            var optionsWithAnswerCount = new List<OptionWithAnswerCountDto>();
-
-            foreach (var option in question.Options)
-            {
-                // Список ответов для данной опции
-                var answers = question.Answers.Where(a => a.OptionId == option.Id).ToList();
-
-                // Если опрос анонимный, не включаем список пользователей
-                List<CreateUserRequestDto>? answeredUsers = null;
-
-                if (survey.Type == SurveyType.PublicType)
-                {
-                    answeredUsers = answers
-                        .Select(a => new CreateUserRequestDto { Id = a.UserId, Username = a.User.UserName })
-                        .ToList();
-                }
-
-                optionsWithAnswerCount.Add(new OptionWithAnswerCountDto
-                {
-                    OptionId = option.Id,
-                    Text = option.Text,
-                    AnswerCount = answers.Count,
-                    AnsweredUsers = answeredUsers // null для анонимных опросов
-                });
-            }
-
-            surveyWithAnswerCount.Questions.Add(new QuestionWithOptionsDto
-            {
-                QuestionId = question.Id,
-                QuestionText = question.Text,
-                Options = optionsWithAnswerCount
-            });
-        }
-
-        return surveyWithAnswerCount;
+        return survey;
     }
-
 
     public async Task<SurveyWithAnswerCountDto> UpdateSurveyAsync(Guid id, SurveyUpdateDto surveyUpdateDto)
     {

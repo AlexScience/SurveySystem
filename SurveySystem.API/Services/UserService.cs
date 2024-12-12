@@ -10,6 +10,7 @@ public class UserService(UserManager<User> userManager) : IUserService
     {
         var user = new User
         {
+            Id = Guid.NewGuid().ToString(),
             UserName = username,
             Email = email,
             FullName = fullName
