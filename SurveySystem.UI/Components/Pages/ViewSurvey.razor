@@ -1,0 +1,47 @@
+﻿@page "/view-survey/{surveyId:guid}"
+@using SurveySystem.DTO.DTO
+@using SurveySystem.UI.Services
+@inject SurveyService SurveyService
+
+<h3>View Survey</h3>
+
+@if (errorMessage != null)
+{
+    <p style="color: red;">@errorMessage</p>
+}
+else if (survey == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <strong>Title:</strong> @survey.Title
+    </div>
+    <div>
+        <strong>Description:</strong> @survey.Description
+    </div>
+    <div>
+        <strong>Type:</strong> @survey.Type
+    </div>
+}
+
+
+@code {
+    [Parameter] public Guid SurveyId { get; set; }
+    private SurveyWithAnswerCountDto survey;
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            survey = await SurveyService.GetSurveyByIdAsync(SurveyId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading survey: {ex.Message}";
+        }
+    }
+
+}

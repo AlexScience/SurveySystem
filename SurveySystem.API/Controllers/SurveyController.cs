@@ -18,6 +18,11 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
+        if (!ModelState.IsValid) // Проверка на ошибки валидации
+        {
+            return BadRequest(ModelState); // Возвращаем все ошибки валидации
+        }
+
         try
         {
             if (!Enum.IsDefined(typeof(SurveyType), surveyDto.Type))
@@ -38,7 +43,7 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
         }
     }
 
-    [HttpGet("{surveyId}")]
+    [HttpGet("/view-survey/{surveyId:guid}")]
     [SwaggerOperation(
         Summary = "Get a survey by ID",
         Description = "Retrieves the details of a survey by its unique identifier."
@@ -62,7 +67,6 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
                 new { message = "An error occurred while processing your request", details = ex.Message });
         }
     }
-
 
     [HttpPut("{id:guid}")]
     [SwaggerOperation(

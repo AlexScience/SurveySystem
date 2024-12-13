@@ -6,4 +6,13 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SurveySystem.API\SurveySystem.API.csproj" />
+      <ProjectReference Include="..\SurveySystem.DTO\SurveySystem.DTO.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    </ItemGroup>
+
 </Project>

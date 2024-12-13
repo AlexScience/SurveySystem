@@ -1,10 +1,26 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using SurveySystem.UI.Services;
 using SurveySystem.UI.Components;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.AddServerHeader = false;
+});
+
+builder.Services.AddHttpClient("SurveyAPI", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7204;http://localhost:5083");
+});
+
+builder.Services.AddScoped<SurveyService>();
+
 
 var app = builder.Build();
 
