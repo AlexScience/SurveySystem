@@ -3,6 +3,8 @@
 ## Введение
 Данный проект представляет собой систему опросов, которая позволяет создавать, обновлять опросы с вопросами и вариантами ответов. Пользователи могут отправлять свои ответы на вопросы, а также просматривать результаты опросов.
 
+![{0D854A87-F49D-42FF-B786-BD0D7EE37106}](https://github.com/user-attachments/assets/958885bc-077a-483e-8f07-ddcffdcd0e66)
+
 ## Структура проекта
 Проект состоит из нескольких ключевых компонентов:
 - **Модели данных**: определяют структуру данных, используемых в системе.
@@ -105,7 +107,7 @@ var surveyDto = new SurveyCreateDto
 };
 var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
 
-###Json
+Json
 {
   "title": "string",
   "description": "string",
@@ -128,6 +130,16 @@ var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
 ```csharp
 var answerService = new AnswerService(context);
 var answer = await answerService.SubmitAnswerAsync(questionId, userId, null, new List<Guid> { optionId });
+
+{
+  "questionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "userId": "string",
+  "answerText": "string", (если ответ в текстовом формате)
+  "optionsId": [
+    "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  ]
+}
+
 ```
 
 ## Настройка базы данных PostgreSQL
@@ -156,4 +168,4 @@ dotnet run
 
 ## Заключение
 
-Данная система позволяет эффективно управлять опросами, вопросами и ответами. Каждый компонент API работает асинхронно для обеспечения высокой производительности.
+Данная система позволяет управлять опросами, вопросами и ответами. Каждый компонент API работает асинхронно для обеспечения высокой производительности.
