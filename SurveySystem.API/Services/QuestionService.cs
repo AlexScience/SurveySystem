@@ -16,9 +16,9 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
         {
             throw new ArgumentException($"Question with ID {id} not found.");
         }
-
+        
         question = question with { Text = questionUpdateDto.Text };
-        context.Questions.Update(question);
+
         await context.SaveChangesAsync();
 
         return question;
@@ -26,7 +26,7 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
     
     public async Task<Question> UpdateOptionAsync(Guid id, OptionUpdateDto optionUpdateDto)
     {
-        var question = await context.Questions
+        var question = await context.Questions.AsNoTracking()
             .Include(q => q.Options)
             .FirstOrDefaultAsync(q => q.Id == id);
 
@@ -34,10 +34,17 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
         {
             throw new ArgumentException($"Question with ID {id} not found.");
         }
+        
+        var updatedQuestion = new Question(question.Id, question.Text, question.Type, question.SurveyId)
+        {
+            Options = question.Options.ToList(),
+            Answers = question.Answers.ToList(),
+            Survey = question.Survey
+        };
 
         foreach (var optionUpdate in optionUpdateDto.Options)
         {
-            var option = question.Options.FirstOrDefault(o => o.Id == optionUpdate.OptionId);
+            var option = updatedQuestion.Options.FirstOrDefault(o => o.Id == optionUpdate.OptionId);
             if (option != null)
             {
                 option = option with { Text = optionUpdate.Text };
@@ -48,12 +55,11 @@ public class QuestionService(SurveyDbContext context) : IQuestionService
             }
         }
 
-        context.Questions.Update(question);
+        context.Update(updatedQuestion);
         await context.SaveChangesAsync();
-
-        return question;
+        return updatedQuestion;
     }
-
+    
     public async Task<bool> DeleteQuestionAsync(Guid id)
     {
         var question = await context.Questions.FindAsync(id);

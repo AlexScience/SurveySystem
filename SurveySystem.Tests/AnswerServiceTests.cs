@@ -1,67 +1,48 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SurveySystem.API.DataAccess;
 using SurveySystem.API.Services;
-using SurveySystem.DTO.DTO;
 using SurveySystem.Models.Models;
 
 namespace SurveySystem.Tests;
 
 public class AnswerServiceTests
 {
-    // private readonly SurveyDbContext _dbContext;
-    // private readonly AnswerService _answerService;
-    //
-    // public AnswerServiceTests()
-    // {
-    //     // Используем InMemoryDatabase для теста
-    //     var options = new DbContextOptionsBuilder<SurveyDbContext>()
-    //         .UseInMemoryDatabase(databaseName: "TestDatabase")
-    //         .Options;
-    //
-    //     _dbContext = new SurveyDbContext(options);
-    //     _answerService = new AnswerService(_dbContext);
-    // }
-    //
-    // [Fact]
-    // public async Task CreateAnswerAsync_ShouldReturnAnswer_WhenValidDataIsProvided()
-    // {
-    //     // Arrange
-    //     var questionId = Guid.NewGuid();
-    //     var userId = "user123";
-    //     var optionId = Guid.NewGuid();
-    //     var answerDto = new AnswerCreateDto
-    //     {
-    //         QuestionId = questionId,
-    //         AnswerText = "My Answer",
-    //         OptionId = optionId,
-    //         UserId = userId
-    //     };
-    //
-    //     // Mock data
-    //     var question = new Question(questionId, "Sample Question", QuestionType.MultipleChoice, Guid.NewGuid())
-    //     {
-    //         Options = new List<Option>
-    //         {
-    //             new Option(Guid.NewGuid(), "Option 1", questionId),
-    //             new Option(optionId, "Option 2", questionId)
-    //         }
-    //     };
-    //
-    //     var user = new User { Id = userId, UserName = "user123" };
-    //
-    //     // Сохраняем данные в InMemory базу
-    //     _dbContext.Questions.Add(question);
-    //     _dbContext.Users.Add(user);
-    //     await _dbContext.SaveChangesAsync();
-    //
-    //     // Act
-    //     var answer = await _answerService.CreateAnswerAsync(answerDto);
-    //
-    //     // Assert
-    //     Assert.NotNull(answer);
-    //     Assert.Equal(answerDto.QuestionId, answer.QuestionId);
-    //     Assert.Equal(answerDto.AnswerText, answer.AnswerText);
-    //     Assert.Equal(answerDto.OptionId, answer.OptionId);
-    //     Assert.Equal(answerDto.UserId, answer.UserId);
-    // }
+    private SurveyDbContext CreateInMemoryDbContext()
+    {
+        var options = new DbContextOptionsBuilder<SurveyDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        return new SurveyDbContext(options);
+    }
+
+    [Fact]
+    public async Task SubmitAnswerAsync_Should_Create_Answer_For_TextQuestion()
+    {
+        var dbContext = CreateInMemoryDbContext();
+        var question = new Question(Guid.NewGuid(), "Text question", QuestionType.TextAnswer, Guid.NewGuid());
+        dbContext.Questions.Add(question);
+        await dbContext.SaveChangesAsync();
+
+        var answerService = new AnswerService(dbContext);
+        var answerText = "Test Answer";
+        
+        var result = await answerService.SubmitAnswerAsync(question.Id, "user1", answerText, null);
+        
+        Assert.NotNull(result);
+        Assert.Equal(answerText, result.AnswerText);
+        Assert.Equal(question.Id, result.QuestionId);
+    }
+
+    [Fact]
+    public async Task SubmitAnswerAsync_Should_Throw_If_Question_Not_Found()
+    {
+        var dbContext = CreateInMemoryDbContext();
+        var answerService = new AnswerService(dbContext);
+
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await answerService.SubmitAnswerAsync(Guid.NewGuid(), "user1", "Test", null));
+    }
+
+   
 }

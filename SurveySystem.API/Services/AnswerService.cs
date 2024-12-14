@@ -67,7 +67,7 @@ public class AnswerService(SurveyDbContext context) : IAnswerService
 
     public async Task<Answer> GetAnswerByIdAsync(Guid id)
     {
-        var answer = await context.Answers.Include(a => a.Question)
+        var answer = await context.Answers.AsNoTracking().Include(a => a.Question)
             .ThenInclude(q => q.Options)
             .Include(a => a.User)
             .Include(a => a.SelectedOptions)

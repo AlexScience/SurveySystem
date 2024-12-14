@@ -18,9 +18,9 @@ public class SurveysController(ISurveyService surveyService) : ControllerBase
     )]
     public async Task<IActionResult> CreateSurvey([FromBody] SurveyCreateDto surveyDto)
     {
-        if (!ModelState.IsValid) // Проверка на ошибки валидации
+        if (!ModelState.IsValid) 
         {
-            return BadRequest(ModelState); // Возвращаем все ошибки валидации
+            return BadRequest(ModelState); 
         }
 
         try

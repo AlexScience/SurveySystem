@@ -9,5 +9,4 @@ public record QuestionUpdateDto()
     [MaxLength(500)]
     [SwaggerSchema("The text of the question")]
     public string Text { get; set; } = string.Empty;
-    
 }
