@@ -104,6 +104,24 @@ var surveyDto = new SurveyCreateDto
     }
 };
 var createdSurvey = await surveyService.CreateSurveyAsync(surveyDto);
+
+###Json
+{
+  "title": "string",
+  "description": "string",
+  "type": "PublicType",
+  "questions": [
+    {
+      "text": "string",
+      "type": "MultipleChoice",
+      "options": [
+        {
+          "text": "string"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 Пример отправки ответа:
