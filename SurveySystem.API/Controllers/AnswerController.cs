@@ -34,7 +34,7 @@ public class AnswerController(IAnswerService answerService) : ControllerBase
             return StatusCode(500, $"Internal Server Error: {ex.Message}");
         }
     }
-    
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetAnswerById(Guid id)
     {

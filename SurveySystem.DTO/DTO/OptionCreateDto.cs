@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace SurveySystem.DTO.DTO;
 
 [SwaggerSchema("Model for creating an option.")]
-public class OptionCreateDto
+public record OptionCreateDto
 {
     [Required]
     [MaxLength(500)]

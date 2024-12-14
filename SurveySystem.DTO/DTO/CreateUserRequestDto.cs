@@ -7,7 +7,7 @@ namespace SurveySystem.DTO.DTO;
 [SwaggerSchema("Request model for creating a user.")]
 public record CreateUserRequestDto
 {
-    [Required]
+    
     [JsonIgnore]
     [SwaggerSchema("The unique identifier of the user (ignored during creation).")]
     public string Id { get; init; } = string.Empty;

@@ -23,5 +23,4 @@ public class SurveyCreateDto
     [SwaggerSchema("A collection of questions associated with the survey")]
     public ICollection<QuestionCreateDto> Questions { get; set; } = new List<QuestionCreateDto>();
     
-   
 }
